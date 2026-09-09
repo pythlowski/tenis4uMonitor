@@ -21,11 +21,10 @@ class DataParser:
                 continue
 
             for day in station.get("days", []):
-                date = day["date"].replace("/", "-")
 
                 for free_slot in day.get("free_hours", []):
-                    begin_date = self.parse_time(date, free_slot['begin_time'])
-                    end_date = self.parse_time(date, free_slot['end_time'])
+                    begin_date = self.parse_date(day["date"], free_slot['begin_time'])
+                    end_date = self.parse_date(day["date"], free_slot['end_time'])
 
                     results += [
                         EmptySlot(courtName=station["name"], date=date) 
@@ -35,18 +34,26 @@ class DataParser:
         return results
 
 
-    def parse_time(self, time_str: str) -> time:
-        return datetime.strptime(time_str, "%H:%M:%S").time()
+    def parse_date(self, date_str: str, time_str: str) -> datetime:
+        return datetime.strptime(f"{date_str} {time_str}", "%Y/%m/%d %H:%M:%S")
 
 
-    def get_acceptable_slots(self, begin_time: time, end_time: time, duration_hours: int = 1) -> list[time]:
+    def set_time_for_datetime(self, dt: datetime, t: time) -> datetime:
+        return datetime.combine(dt.date(), t)
+
+
+    def get_acceptable_slots(self, begin_date: datetime, end_date: datetime, duration_hours: int = 1) -> list[datetime]:
         slots = []
-        current_begin_time = max(self.BEGIN_TIME, begin_time)
-        max_end_time = min(end_time, self.END_TIME)
-        
-        while current_begin_time + timedelta(hours=duration_hours) <= max_end_time:
-            slots.append(current_begin_time)
-            current_begin_time += timedelta(minutes=30)
+
+        acceptable_begin_date = self.set_time_for_datetime(begin_date, self.BEGIN_TIME)
+        acceptable_end_date = self.set_time_for_datetime(end_date, self.END_TIME)
+
+        current_begin_date = max(acceptable_begin_date, begin_date)
+        max_end_date = min(acceptable_end_date, end_date)
+
+        while current_begin_date + timedelta(hours=duration_hours) <= max_end_date:
+            slots.append(current_begin_date)
+            current_begin_date += timedelta(minutes=30)
 
         return slots
 
