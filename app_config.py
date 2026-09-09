@@ -20,8 +20,8 @@ class AppConfig:
             data = json.load(f)
 
         return cls(
-            api_url=data["api_settings"]["api_url"],
-            api_headers=data["api_settings"]["api_headers"],
+            api_url=data["api_settings"]["url"],
+            api_headers=data["api_settings"]["headers"],
             smtp_server=data["smtp_settings"]["server"],
             smtp_port=int(data["smtp_settings"]["port"]),
             sender_email=data["smtp_settings"]["sender_email"],

@@ -1,9 +1,9 @@
 from dataclasses import dataclass
-from datetime import time
+from datetime import datetime
 
 
 @dataclass
 class EmptySlot:
     courtName: str
-    date: time
+    date: datetime
     durationHours: int = 1

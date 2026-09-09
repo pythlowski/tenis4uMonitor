@@ -3,7 +3,7 @@
         "fetch_interval_seconds": 30
     },
     "api_settings": {
-        "api_url": "https://api.tenis4u.pl",
+        "url": "https://api.tenis4u.pl",
         "headers": {
             "x-tenis-user-agent": "tenis4u-web-frontoffice/3.6.0"
         }
