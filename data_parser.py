@@ -1,7 +1,7 @@
 import json
 from datetime import datetime, time, timedelta
 
-from models.empty_slot import EmptySlot
+from models.free_slot import FreeSlot
 
 
 class DataParser:
@@ -11,7 +11,7 @@ class DataParser:
         self.END_TIME: time = time(22, 30, 0)
 
 
-    def parse_occupancy(self, raw_data: str, court_type: str) -> list[EmptySlot]:
+    def parse_occupancy(self, raw_data: str, court_type: str) -> list[FreeSlot]:
         data = json.loads(raw_data)
 
         results = []
@@ -27,7 +27,7 @@ class DataParser:
                     end_date = self.parse_date(day["date"], free_slot['end_time'])
 
                     results += [
-                        EmptySlot(courtName=station["name"], date=date) 
+                        FreeSlot(courtName=station["name"], date=date) 
                         for date in self.get_acceptable_slots(begin_date, end_date)
                         ]
 

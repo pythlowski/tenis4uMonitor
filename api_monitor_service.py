@@ -15,10 +15,10 @@ class APIMonitorService:
         self.data_service = DataService(self.config)
 
     def run_once(self) -> None:
-        empty_slots = self.data_service.get_empty_slots(facility_id=104)
-        
-        print(f"Found {len(empty_slots)} empty slots:")
-        for slot in empty_slots:
+        free_slots = self.data_service.get_free_slots(facility_id=104)
+
+        print(f"Found {len(free_slots)} free slots:")
+        for slot in free_slots:
             print(f"- {slot.courtName} at {slot.date.strftime('%Y-%m-%d %H:%M:%S')}")
 
         if False:

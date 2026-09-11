@@ -3,7 +3,7 @@ from datetime import datetime
 
 
 @dataclass
-class EmptySlot:
+class FreeSlot:
     courtName: str
     date: datetime
     durationHours: int = 1
