@@ -1,29 +1,36 @@
-import random
 import requests
-from proxies import get_working_proxies
+from proxy_background_service import ProxyBackgroundService
 
 class APIClient:
 
     def __init__(self, user_agent: str = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36", headers: dict | None = None):
+        self.proxy_service = ProxyBackgroundService()
         self.user_agent = user_agent
         self.headers = headers or {}
 
-    def fetch_data(self, url: str, timeout: int = 10) -> str:
+    def fetch_data(self, url: str, timeout: int = 10, max_retries: int = 5) -> str:
         request_headers = {"User-Agent": self.user_agent}
         request_headers.update(self.headers)
 
-        proxies = self.get_proxies()
+        for attempt in range(max_retries):
+            try:
+                return self._fetch_with_proxy(url, request_headers, timeout)
+            except requests.RequestException as e:
+                print(f"[Attempt {attempt + 1}/{max_retries}] Request failed: {e}")
+                if attempt == max_retries - 1:
+                    raise
+                else:
+                    print("Retrying with a new proxy...")
+
+    def _fetch_with_proxy(self, url: str, headers: dict, timeout: int) -> str:
+        proxy = self.proxy_service.get_proxy()
+        proxies = {"http": f"http://{proxy}", "https": f"http://{proxy}"}
 
         response = requests.get(
             url, 
-            headers=request_headers, 
+            headers=headers, 
             proxies=proxies, 
             timeout=timeout
         )
 
         return response.text
-
-    def get_proxies(self) -> list[dict[str, str]]:
-        working_proxies = get_working_proxies(max_working=3)
-        random_proxies_idx = random.randint(0, len(working_proxies) - 1)
-        return working_proxies[random_proxies_idx]
