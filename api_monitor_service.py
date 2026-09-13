@@ -12,13 +12,13 @@ from email_notifier import EmailNotifier
 
 class APIMonitorService:
 
-    def __init__(self, config_path: str = "config.json"):
-        self.config = AppConfig.from_json(config_path)
+    def __init__(self, config: AppConfig):
+        self.config = config
         self.notifier = EmailNotifier(self.config)
         self.data_service = DataService(self.config)
 
     def run_once(self) -> None:
-        free_slots = self.data_service.get_free_slots(facility_id=104)
+        free_slots = self.data_service.get_free_slots()
 
         print(f"Found {len(free_slots)} free slots:")
         self.save_snapshot(free_slots)
@@ -49,4 +49,4 @@ class APIMonitorService:
             except Exception as err:
                 logging.exception("Unexpected error during execution: %s", err)
 
-            time.sleep(self.config.fetch_interval_seconds)
+            time.sleep(self.config.fetch_interval_minutes * 60)

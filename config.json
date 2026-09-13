@@ -1,12 +1,17 @@
 {
     "settings": {
-        "fetch_interval_seconds": 30
+        "facility_id": 104,
+        "court_type": "badminton",
+        "begin_time": "15:30",
+        "end_time": "22:30",
+        "days_of_week": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Sunday"]
     },
     "api_settings": {
         "url": "https://api.tenis4u.pl",
         "headers": {
             "x-tenis-user-agent": "tenis4u-web-frontoffice/3.6.0"
-        }
+        },
+        "fetch_interval_minutes": 1
     },
     "smtp_settings": {
         "server": "smtp.gmail.com",
