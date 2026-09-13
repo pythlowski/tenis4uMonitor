@@ -12,4 +12,5 @@ class DataService:
 
     def get_free_slots(self, facility_id: int) -> str:
         raw_data = self.api_client.fetch_data(self.config.api_url + f"/occupancy/{facility_id}")
-        return self.data_parser.parse_occupancy(raw_data, "badminton")
+        free_slots = self.data_parser.parse_occupancy(raw_data, "badminton")
+        return sorted(free_slots, key=lambda slot: (slot.date, slot.courtName))
