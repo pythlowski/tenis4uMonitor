@@ -6,7 +6,7 @@ from data_parser import DataParser
 
 class TestDataParserAcceptableSlots(unittest.TestCase):
     def setUp(self):
-        self.parser = DataParser()
+        self.parser = DataParser("badminton", time(17, 0), time(22, 30), ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Sunday"])
         self.YEAR = 2026
         self.MONTH = 9
         self.DAY = 10

@@ -2,7 +2,7 @@
     "settings": {
         "facility_id": 104,
         "court_type": "badminton",
-        "begin_time": "15:30",
+        "begin_time": "16:30",
         "end_time": "22:30",
         "days_of_week": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Sunday"]
     },
