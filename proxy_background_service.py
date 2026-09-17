@@ -4,9 +4,11 @@ import time
 import requests
 
 from settings import ApiSettings
+from logger import Logger
 
 class ProxyBackgroundService:
     def __init__(self, api_settings: ApiSettings):
+        self.logger = Logger(name="PROXY")
         self.ready_proxies: queue.Queue[str] = queue.Queue(maxsize=api_settings.max_proxies_ready)
         self.untested_proxies: queue.Queue[str] = queue.Queue()
         
@@ -28,7 +30,7 @@ class ProxyBackgroundService:
                 continue
 
             if self.untested_proxies.empty():
-                print("[Background] Fetching new batch of untested proxies...")
+                self.logger.info("Fetching new batch of untested proxies...")
                 raw_proxies = self._fetch_raw_proxies()
                 for proxy in raw_proxies:
                     self.untested_proxies.put(proxy) # Add them to the queue
@@ -44,7 +46,7 @@ class ProxyBackgroundService:
 
             if self._is_proxy_working(untested_proxy):
                 self.ready_proxies.put(untested_proxy)
-                print(f"[Background] Added proxy! Ready to use: {self.ready_proxies.qsize()}/{self.ready_proxies.maxsize}")
+                self.logger.info(f"Added proxy! Ready to use: {self.ready_proxies.qsize()}/{self.ready_proxies.maxsize}.")
 
     def _fetch_raw_proxies(self):
         try:
@@ -55,10 +57,8 @@ class ProxyBackgroundService:
             return []
 
     def _is_proxy_working(self, proxy_ip: str) -> bool:
-        """Test if the proxy actually works."""
         proxy_dict = {"http": f"http://{proxy_ip}", "https": f"http://{proxy_ip}"}
         try:
-            # Short timeout is critical for testing
             requests.get("https://httpbin.org/ip", proxies=proxy_dict, timeout=3)
             return True
         except requests.RequestException:

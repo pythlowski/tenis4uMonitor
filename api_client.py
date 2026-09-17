@@ -1,10 +1,13 @@
 import requests
+
 from proxy_background_service import ProxyBackgroundService
 from settings import ApiSettings
+from logger import Logger
 
 class APIClient:
 
     def __init__(self, api_settings: ApiSettings, user_agent: str = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36"):
+        self.logger = Logger(name="API_CLIENT")
         self.proxy_service = ProxyBackgroundService(api_settings=api_settings)
         self.user_agent = user_agent
         self.headers = api_settings.headers or {}
@@ -17,11 +20,11 @@ class APIClient:
             try:
                 return self._fetch_with_proxy(url, request_headers, timeout)
             except requests.RequestException as e:
-                print(f"[Attempt {attempt + 1}/{max_retries}] Request failed: {e}")
+                self.logger.error(f"[Attempt {attempt + 1}/{max_retries}] Request failed: {e}")
                 if attempt == max_retries - 1:
                     raise
                 else:
-                    print("Retrying with a new proxy...")
+                    self.logger.info("Retrying with a new proxy...")
 
     def _fetch_with_proxy(self, url: str, headers: dict, timeout: int) -> str:
         proxy = self.proxy_service.get_proxy()

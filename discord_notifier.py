@@ -1,9 +1,11 @@
 from datetime import time
-
 import requests
+
+from logger import Logger
 
 class DiscordNotifier:
     def __init__(self, webhook_url: str):
+        self.logger = Logger(name="DISCORD")
         self.webhook_url = webhook_url
 
     def send_alert(self, content: str = "", embed: dict = {}, max_retries=5, base_delay=1.0):
@@ -26,20 +28,20 @@ class DiscordNotifier:
                     continue
 
                 if response.status_code >= 400:
-                    print(f"HTTP {response.status_code}: {response.text}")
+                    self.logger.error(f"HTTP {response.status_code}: {response.text}")
                     return False
 
             except requests.exceptions.ConnectionError:
-                print(f"Connection failed (attempt {attempt + 1}/{max_retries})")
+                self.logger.error(f"Connection failed (attempt {attempt + 1}/{max_retries}).")
             except requests.exceptions.Timeout:
-                print(f"Request timed out (attempt {attempt + 1}/{max_retries})")
+                self.logger.error(f"Request timed out (attempt {attempt + 1}/{max_retries}).")
             except requests.exceptions.HTTPError as e:
-                print(f"HTTP error: {e}")
+                self.logger.error(f"HTTP error: {e}")
                 return False
 
             # Exponential backoff: 1s, 2s, 4s, 8s, 16s
             delay = base_delay * (2 ** attempt)
             time.sleep(delay)
 
-        print("All retry attempts exhausted.")
+        self.logger.error("All retry attempts exhausted.")
         return False
