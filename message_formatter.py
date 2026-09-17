@@ -18,10 +18,10 @@ class MessageFormatter:
         )
     
     @staticmethod
-    def discord_rich_format(free_slots: list[FreeSlot]) -> dict:
+    def discord_rich_format(free_slots: list[FreeSlot], weekdays: list[str]) -> dict:
         embed = {
             "title": "tenis4u Monitor Report",
-            "description": f"Found {len(free_slots)} free slots!",
+            "description": f"Found {len(free_slots)} free slots for weekdays: {', '.join(weekdays)}!",
             "color": 5793266,
             "fields": MessageFormatter._get_fields(free_slots),
             "footer": {
@@ -62,5 +62,6 @@ if __name__ == "__main__":
         FreeSlot(courtName="badminton 2", date=datetime.datetime(2024, 6, 17, 18, 0)),
         FreeSlot(courtName="badminton 3", date=datetime.datetime(2024, 6, 18, 19, 0)),
     ]
-    embed = MessageFormatter.discord_rich_format(free_slots)
+    weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Sunday"]
+    embed = MessageFormatter.discord_rich_format(free_slots, weekdays)
     discord_notifier.send_alert(embed=embed)
