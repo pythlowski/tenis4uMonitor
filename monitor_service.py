@@ -1,11 +1,10 @@
 import logging
 import time
-import calendar
 import datetime
 from urllib.error import HTTPError, URLError
 
 from discord_notifier import DiscordNotifier
-from models.snapshot import Snapshot
+from message_formatter import MessageFormatter
 from settings import Settings
 from data_service import DataService
 from snapshots_manager import SnapshotManager
@@ -22,18 +21,8 @@ class MonitorService:
     def run_once(self) -> None:
         free_slots = self.data_service.get_free_slots()
 
-        # snapshot = Snapshot(days_of_week=self.settings.days_of_week, free_slots=free_slots)
-        # self.snapshots_manager.save(snapshot)
-
-        self.notifier.send_alert(
-            message=f"Found {len(free_slots)} free slots\n\n" + "\n".join(
-                f"- {slot.courtName} at {self._get_weekday(slot.date)} {slot.date.strftime('%Y-%m-%d %H:%M:%S')}"
-                for slot in free_slots
-            )
-        )
-
-    def _get_weekday(self, date: datetime) -> str:
-        return calendar.day_name[date.weekday()]
+        print(f"Found {len(free_slots)} free slots.")
+        self.notifier.send_alert(embed=MessageFormatter.discord_rich_format(free_slots))
     
     def start(self) -> None:
         started = time.monotonic()
@@ -51,4 +40,6 @@ class MonitorService:
             elapsed = time.monotonic() - started
             sleep_for = max(0, self.settings.api.fetch_interval_minutes * 60 - elapsed)
 
+            print(f"Elapsed time: {elapsed:.2f} seconds. Sleeping for {sleep_for:.2f} seconds.")
+            
             time.sleep(sleep_for)

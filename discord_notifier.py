@@ -6,9 +6,11 @@ class DiscordNotifier:
     def __init__(self, webhook_url: str):
         self.webhook_url = webhook_url
 
-    def send_alert(self, message: str, max_retries=5, base_delay=1.0):
+    def send_alert(self, content: str = "", embed: dict = {}, max_retries=5, base_delay=1.0):
         payload = {
-            "content": message
+            "embeds": [embed],
+        } if embed else {
+            "content": content,
         }
 
         for attempt in range(max_retries):
