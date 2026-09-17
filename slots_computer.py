@@ -4,7 +4,7 @@ from datetime import datetime, time, timedelta
 from models.free_slot import FreeSlot
 
 
-class DataParser:
+class SlotsComputer:
 
     def __init__(self, court_type: str, begin_time: time, end_time: time, days_of_week: list[str]):
         self.court_type = court_type
@@ -13,7 +13,7 @@ class DataParser:
         self.days_of_week = days_of_week
 
 
-    def parse_occupancy(self, raw_data: str) -> list[FreeSlot]:
+    def compute(self, raw_data: str) -> list[FreeSlot]:
         data = json.loads(raw_data)
 
         results = []
@@ -25,30 +25,30 @@ class DataParser:
             for day in station.get("days", []):
 
                 for free_slot in day.get("free_hours", []):
-                    begin_date = self.parse_date(day["date"], free_slot['begin_time'])
-                    end_date = self.parse_date(day["date"], free_slot['end_time'])
+                    begin_date = self._parse_date(day["date"], free_slot['begin_time'])
+                    end_date = self._parse_date(day["date"], free_slot['end_time'])
 
                     results += [
                         FreeSlot(courtName=station["name"], date=date) 
-                        for date in self.get_acceptable_slots(begin_date, end_date, duration_hours=1)
+                        for date in self._get_acceptable_slots(begin_date, end_date, duration_hours=1)
                     ]
 
         return results
 
 
-    def parse_date(self, date_str: str, time_str: str) -> datetime:
+    def _parse_date(self, date_str: str, time_str: str) -> datetime:
         return datetime.strptime(f"{date_str} {time_str}", "%Y/%m/%d %H:%M:%S")
 
 
-    def set_time_for_datetime(self, dt: datetime, t: time) -> datetime:
+    def _set_time_for_datetime(self, dt: datetime, t: time) -> datetime:
         return datetime.combine(dt.date(), t)
 
 
-    def get_acceptable_slots(self, begin_date: datetime, end_date: datetime, duration_hours: int = 1) -> list[datetime]:
+    def _get_acceptable_slots(self, begin_date: datetime, end_date: datetime, duration_hours: int = 1) -> list[datetime]:
         slots = []
 
-        acceptable_begin_date = self.set_time_for_datetime(begin_date, self.begin_time)
-        acceptable_end_date = self.set_time_for_datetime(end_date, self.end_time)
+        acceptable_begin_date = self._set_time_for_datetime(begin_date, self.begin_time)
+        acceptable_end_date = self._set_time_for_datetime(end_date, self.end_time)
 
         current_begin_date = max(acceptable_begin_date, begin_date)
         max_end_date = min(acceptable_end_date, end_date)
