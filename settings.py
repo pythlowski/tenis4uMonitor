@@ -1,6 +1,4 @@
 import datetime
-import json
-from dataclasses import dataclass, field
 
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -10,15 +8,8 @@ from pydantic_settings.sources import TomlConfigSettingsSource, EnvSettingsSourc
 class ApiSettings(BaseModel):
     url: str = "https://api.tenis4u.pl"
     headers: dict[str, str] = {"x-tenis-user-agent": "tenis4u-web-frontoffice/3.6.0"}
+    discord_webhook_url: str = ""
     fetch_interval_minutes: int = 1
-
-
-class SmtpSettings(BaseModel):
-    server: str = "smtp.gmail.com"
-    port: int = 587
-    sender_email: str = "pythlodev@gmail.com"
-    sender_password: str = ""
-    recipients: list[str] = ["ikswoltyp@gmail.com"]
 
 
 class Settings(BaseSettings):
@@ -39,11 +30,10 @@ class Settings(BaseSettings):
     )
 
     api: ApiSettings = Field(default_factory=ApiSettings)
-    smtp: SmtpSettings = Field(default_factory=SmtpSettings)
 
     model_config = SettingsConfigDict(
         env_file=".env",
-        env_prefix="APP_",
+        env_prefix="MYAPP_",
         env_nested_delimiter="__",
         toml_file="config.toml",
         extra="ignore",
