@@ -1,12 +1,13 @@
 import requests
 from proxy_background_service import ProxyBackgroundService
+from settings import ApiSettings
 
 class APIClient:
 
-    def __init__(self, user_agent: str = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36", headers: dict | None = None):
-        self.proxy_service = ProxyBackgroundService()
+    def __init__(self, api_settings: ApiSettings, user_agent: str = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36"):
+        self.proxy_service = ProxyBackgroundService(api_settings=api_settings)
         self.user_agent = user_agent
-        self.headers = headers or {}
+        self.headers = api_settings.headers or {}
 
     def fetch_data(self, url: str, timeout: int = 10, max_retries: int = 5) -> str:
         request_headers = {"User-Agent": self.user_agent}

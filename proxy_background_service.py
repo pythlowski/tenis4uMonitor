@@ -3,9 +3,11 @@ import queue
 import time
 import requests
 
+from settings import ApiSettings
+
 class ProxyBackgroundService:
-    def __init__(self, max_ready=5):
-        self.ready_proxies: queue.Queue[str] = queue.Queue(maxsize=max_ready)
+    def __init__(self, api_settings: ApiSettings):
+        self.ready_proxies: queue.Queue[str] = queue.Queue(maxsize=api_settings.max_proxies_ready)
         self.untested_proxies: queue.Queue[str] = queue.Queue()
         
         self.is_running = True

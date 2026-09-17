@@ -8,3 +8,4 @@ days_of_week = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Sunday"
 url = "https://api.tenis4u.pl"
 headers = { "x-tenis-user-agent" = "tenis4u-web-frontoffice/3.6.0" }
 fetch_interval_minutes = 20
+max_proxies_ready = 5

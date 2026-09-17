@@ -10,6 +10,7 @@ class ApiSettings(BaseModel):
     headers: dict[str, str] = {"x-tenis-user-agent": "tenis4u-web-frontoffice/3.6.0"}
     discord_webhook_url: str = ""
     fetch_interval_minutes: int = 1
+    max_proxies_ready: int = 5
 
 
 class Settings(BaseSettings):
