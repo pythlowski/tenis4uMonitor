@@ -23,7 +23,13 @@ class MonitorService:
         free_slots = self.data_service.get_free_slots()
 
         self.logger.info(f"Found {len(free_slots)} free slots.")
-        self.notifier.send_alert(embed=MessageFormatter.discord_rich_format(free_slots))
+        self.notifier.send_alert(
+            embed=MessageFormatter.discord_rich_format(
+                free_slots, 
+                self.settings.weekdays, 
+                url=self.settings.api.url + f"/court/{self.settings.facility_id}"
+            )
+        )
     
     def start(self) -> None:
         while True:
