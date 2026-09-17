@@ -5,17 +5,17 @@ import calendar
 import datetime
 from urllib.error import HTTPError, URLError
 
-from app_config import AppConfig
+from settings import Settings
 from data_service import DataService
 from email_notifier import EmailNotifier
 
 
 class APIMonitorService:
 
-    def __init__(self, config: AppConfig):
-        self.config = config
-        self.notifier = EmailNotifier(self.config)
-        self.data_service = DataService(self.config)
+    def __init__(self, settings: Settings):
+        self.settings = settings
+        self.notifier = EmailNotifier(self.settings.smtp)
+        self.data_service = DataService(self.settings)
 
     def run_once(self) -> None:
         free_slots = self.data_service.get_free_slots()
@@ -49,4 +49,4 @@ class APIMonitorService:
             except Exception as err:
                 logging.exception("Unexpected error during execution: %s", err)
 
-            time.sleep(self.config.fetch_interval_minutes * 60)
+            time.sleep(self.settings.api.fetch_interval_minutes * 60)

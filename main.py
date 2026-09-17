@@ -1,8 +1,8 @@
 from api_monitor_service import APIMonitorService
-from app_config import AppConfig
+from settings import Settings
 
 
 if __name__ == "__main__":
-    config = AppConfig.from_json("config.json")
-    app = APIMonitorService(config)
+    settings = Settings()
+    app = APIMonitorService(settings)
     app.start()
