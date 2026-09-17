@@ -1,13 +1,14 @@
-import json
 import logging
 import time
 import calendar
 import datetime
 from urllib.error import HTTPError, URLError
 
+from models.snapshot import Snapshot
 from settings import Settings
 from data_service import DataService
 from email_notifier import EmailNotifier
+from snapshots_manager import SnapshotManager
 
 
 class APIMonitorService:
@@ -16,12 +17,14 @@ class APIMonitorService:
         self.settings = settings
         self.notifier = EmailNotifier(self.settings.smtp)
         self.data_service = DataService(self.settings)
+        self.snapshots_manager = SnapshotManager()
 
     def run_once(self) -> None:
         free_slots = self.data_service.get_free_slots()
 
         print(f"Found {len(free_slots)} free slots:")
-        self.save_snapshot(free_slots)
+        snapshot = Snapshot(days_of_week=self.settings.days_of_week, free_slots=free_slots)
+        self.snapshots_manager.save(snapshot)
         for slot in free_slots:
             print(f"- {slot.courtName} at {self.get_weekday(slot.date)} {slot.date.strftime('%Y-%m-%d %H:%M:%S')}")
 
@@ -31,11 +34,7 @@ class APIMonitorService:
                 body=f"Automated System Report:\n\n{summary}",
             )
 
-    def save_snapshot(self, free_slots: list) -> None:
-        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"snapshots/snapshot_{timestamp}.json"
-        with open(filename, "w") as f:
-            json.dump([slot.__dict__ for slot in free_slots], f, default=str)
+
             
     def get_weekday(self, date: datetime) -> str:
         return calendar.day_name[date.weekday()]
