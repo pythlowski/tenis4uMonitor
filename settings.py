@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     court_type: str = "badminton"
     begin_time: datetime.time = datetime.time(16, 30)
     end_time: datetime.time = datetime.time(22, 30)
-    days_of_week: list[str] = Field(
+    weekdays: list[str] = Field(
         default_factory=lambda: [
             "Monday",
             "Tuesday",

@@ -1,11 +1,10 @@
-import calendar
 import datetime
 from collections import defaultdict
 
 from discord_notifier import DiscordNotifier
 from models.free_slot import FreeSlot
 from settings import Settings
-
+from datetime_utils import DatetimeUtils
 
 class MessageFormatter:
     @staticmethod
@@ -14,7 +13,7 @@ class MessageFormatter:
             return "No free slots found."
 
         return f"Found {len(free_slots)} free slots\n\n" + "\n".join(
-                f"- {slot.courtName} at {MessageFormatter._get_weekday(slot.date)} {slot.date.strftime('%d-%m-%Y %H:%M')}"
+                f"- {slot.courtName} at {DatetimeUtils.get_weekday(slot.date)} {slot.date.strftime('%d-%m-%Y %H:%M')}"
                 for slot in free_slots
         )
     
@@ -28,13 +27,9 @@ class MessageFormatter:
             "footer": {
                 "text": "Monitoring Bot"
             },
-            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat()
+            "timestamp": DatetimeUtils.get_current_datetime()
         }
         return embed
-
-    @staticmethod
-    def _get_weekday(date: datetime) -> str:
-        return calendar.day_name[date.weekday()]
 
     @staticmethod
     def _get_fields(free_slots: list[FreeSlot]) -> list[dict]:
@@ -48,7 +43,7 @@ class MessageFormatter:
 
         return [
             {
-                "name": f"{MessageFormatter._get_weekday(date)} {date.strftime('%d.%m.%Y')}", 
+                "name": f"{DatetimeUtils.get_weekday(date)} {date.strftime('%d.%m.%Y')}", 
                 "value": "\n".join(f"- {item['time'].strftime('%H:%M')} - {item['name']}" for item in values), 
                 "inline": False}
             for date, values in grouped.items()
