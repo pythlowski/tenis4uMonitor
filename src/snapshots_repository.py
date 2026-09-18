@@ -3,6 +3,7 @@ import json
 import os
 from pathlib import Path
 
+from models.free_slot import FreeSlot
 from models.snapshot import Snapshot
 from logger import Logger
 
@@ -15,17 +16,17 @@ class SnapshotRepository:
         self.logger = Logger("SNAPSHOTS")
     
     def save(self, snapshot: Snapshot) -> None:
-        with open(f"{self.DIRECTORY_NAME}/{self._get_filename()}", "w") as f:
-            json.dump(snapshot.__dict__, f, default=str)
+        path = Path(f"{self.DIRECTORY_NAME}/{self._get_filename()}")
+        path.write_text(snapshot.model_dump_json(indent=2), encoding="utf-8")
         self._ensure_rolling()
 
     def get_latest(self) -> Snapshot:
-        files = self._get_all(newest_first=True)
+        file_paths: list[Path] = self._get_all(newest_first=True)
 
-        if len(files) == 0:
-            return Snapshot()
+        if not file_paths:
+            return Snapshot(weekdays=[], free_slots=[])
 
-        return Snapshot.from_json(files[0])
+        return Snapshot.model_validate_json(file_paths[0].read_text(encoding="utf-8"))
     
     def _get_all(self, newest_first:bool = True) -> list[Path]:
         dir_path = Path(self.DIRECTORY_NAME)
@@ -45,10 +46,13 @@ class SnapshotRepository:
 
 
 if __name__ == "__main__":
-    manager = SnapshotRepository()
+    repository = SnapshotRepository()
 
-    # snapshot = Snapshot(weekdays=[], free_slots=[])
-    # manager.save(snapshot=snapshot)
+    snapshot = Snapshot(weekdays=["Monday", "Tuesday"], free_slots=[
+        FreeSlot(courtName="badminton 1", date=datetime.datetime(2026, 6, 19, 17, 0)),
+        FreeSlot(courtName="badminton 2", date=datetime.datetime(2026, 6, 19, 17, 30)),
+    ])
+    repository.save(snapshot=snapshot)
 
-    latest = manager.get_latest()
+    latest = repository.get_latest()
     print(latest)

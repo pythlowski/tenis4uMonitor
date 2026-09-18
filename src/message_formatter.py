@@ -3,37 +3,19 @@ from collections import defaultdict
 
 from discord_notifier import DiscordNotifier
 from models.free_slot import FreeSlot
+from models.snapshot import Snapshot
 from settings import Settings
 from datetime_utils import DatetimeUtils
 
 class MessageFormatter:
-    @staticmethod
-    def format_payload(free_slots: list[FreeSlot]) -> str:
-        if not free_slots:
-            return "No free slots found."
 
-        message = f"Found {len(free_slots)} free slots\n\n" + "\n".join(
-                f"- {slot.courtName} at {DatetimeUtils.get_weekday(slot.date)} {slot.date.strftime('%d-%m-%Y %H:%M')}"
-                for slot in free_slots
-        )
-
-        return {"content": message}
-    
     @staticmethod
-    def discord_rich_format_payload(free_slots: list[FreeSlot], weekdays: list[str], url: str = None) -> dict:
-        embeds = [
-            {
-                "title": "tenis4u Monitor Report",
-                "description": f"Found {len(free_slots)} free slots for: {', '.join(weekdays)}!" 
-                + "\n[Book at tenis4u!](https://app.tenis4u.pl/court/104)" if url else "",
-                "color": 5793266,
-                "footer": {
-                    "text": "tenis4u Monitor"
-                },
-                "timestamp": DatetimeUtils.get_current_datetime(),
-                "fields": MessageFormatter._get_fields(free_slots),
-            }
-        ]
+    def get_payload(snapshot: Snapshot, new_slots: list[FreeSlot], url: str = None) -> dict:
+        embeds = []
+        embeds.append(MessageFormatter.snapshot_embed(snapshot=snapshot, url=url))
+
+        if new_slots:
+            embeds.append(MessageFormatter.new_slots_embed(new_slots=new_slots))
 
         components = [
             {
@@ -52,13 +34,39 @@ class MessageFormatter:
             }
         ] if url else []
         
-        return {"embeds": embeds, "components": components}
+        return {"embeds": embeds, "components": components, "allowed_mentions": {"parse": ["everyone"]}}
+    
+    @staticmethod
+    def snapshot_embed(snapshot: Snapshot, url: str = None) -> dict:
+        return {
+            "title": "tenis4u Monitor Report",
+            "description": f"Found {len(snapshot.free_slots)} free slots for: {', '.join(snapshot.weekdays)}!" 
+            + "\n[Book at tenis4u!](https://app.tenis4u.pl/court/104)" if url else "",
+            "color": 5793266,
+            "footer": {
+                "text": "tenis4u Monitor"
+            },
+            "timestamp": DatetimeUtils.get_current_datetime(),
+            "fields": MessageFormatter._get_fields(snapshot.free_slots),
+        }
 
     @staticmethod
-    def _get_fields(free_slots: list[FreeSlot]) -> list[dict]:
+    def new_slots_embed(new_slots: list[FreeSlot]) -> dict:
+         return {
+            "title": "New free slots!",
+            "description": MessageFormatter._get_new_slots_description(new_slots),
+            "color": 15906135,
+            "footer": {
+                "text": "tenis4u Monitor"
+            },
+            "timestamp": DatetimeUtils.get_current_datetime(),
+        }
+
+    @staticmethod
+    def _get_fields(slots: list[FreeSlot]) -> list[dict]:
         grouped = defaultdict(list)
 
-        for slot in sorted(free_slots, key=lambda slot: (slot.date, slot.courtName)):
+        for slot in sorted(slots, key=lambda slot: (slot.date, slot.courtName)):
             grouped[slot.date.date()].append({
                 "name": slot.courtName,
                 "time": slot.date.time()
@@ -72,6 +80,10 @@ class MessageFormatter:
             for date, values in grouped.items()
         ]
 
+    @staticmethod
+    def _get_new_slots_description(new_slots: list[FreeSlot]) -> str:
+        return "\n".join(f"- {DatetimeUtils.get_weekday(slot.date)} {slot.date.strftime('%d.%m.%Y %H:%M')} - {slot.courtName}" for slot in new_slots) \
+            + "\n@everyone"
 
 if __name__ == "__main__":
     settings = Settings()
@@ -86,6 +98,7 @@ if __name__ == "__main__":
         FreeSlot(courtName="badminton 3", date=datetime.datetime(2024, 6, 18, 19, 0)),
     ]
     weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Sunday"]
-    payload = MessageFormatter.discord_rich_format_payload(free_slots, weekdays, "https://app.tenis4u.pl/court/104")
+    snapshot = Snapshot(weekdays=weekdays, free_slots=free_slots)
+    payload = MessageFormatter.get_payload(snapshot=snapshot, new_slots=free_slots, url="https://app.tenis4u.pl/court/104")
     print(payload)
     discord_notifier.send_alert(payload=payload)

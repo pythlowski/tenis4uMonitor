@@ -32,9 +32,9 @@ class MonitorService:
         new_slots = self.snapshots_comparator.get_new_slots(new=new_snapshot, old=old_snapshot)
 
         self.notifier.send_alert(
-            payload=MessageFormatter.discord_rich_format_payload(
-                free_slots, 
-                self.settings.weekdays, 
+            payload=MessageFormatter.get_payload(
+                snapshot=new_snapshot,
+                new_slots=new_slots, 
                 url=self.settings.api.url + f"/court/{self.settings.facility_id}"
             )
         )
