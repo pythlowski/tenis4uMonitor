@@ -45,7 +45,7 @@ class MessageFormatter:
         return {
             "title": "tenis4u Monitor Report",
             "description": f"Found {len(snapshot.free_slots)} free slots for: {', '.join(snapshot.weekdays)}!" 
-            + "\n[Book at tenis4u!](https://app.tenis4u.pl/court/104)" if url else "",
+            + "\n[Book at tenis4u!]({url})" if url else "",
             "color": 5793266,
             "footer": {
                 "text": "tenis4u Monitor"
@@ -78,7 +78,7 @@ class MessageFormatter:
 
         return [
             {
-                "name": f"{DatetimeUtils.get_weekday(date)} {date.strftime('%d.%m.%Y')}", 
+                "name": f"{DatetimeUtils.get_weekday(date)} {date.strftime('%d.%m')}", 
                 "value": "\n".join(f"- {item['time'].strftime('%H:%M')} - {item['name']}" for item in values), 
                 "inline": False}
             for date, values in grouped.items()
@@ -86,7 +86,7 @@ class MessageFormatter:
 
     @staticmethod
     def _get_new_slots_description(new_slots: list[FreeSlot]) -> str:
-        return "\n".join(f"- {DatetimeUtils.get_weekday(slot.date)} {slot.date.strftime('%d.%m.%Y %H:%M')} - {slot.courtName}" for slot in new_slots)
+        return "\n".join(f"- {DatetimeUtils.get_weekday(slot.date)} {slot.date.strftime('%d.%m %H:%M')} - {slot.courtName}" for slot in new_slots)
 
 if __name__ == "__main__":
     settings = Settings()
