@@ -25,7 +25,7 @@ class MessageFormatter:
             {
                 "title": "tenis4u Monitor Report",
                 "description": f"Found {len(free_slots)} free slots for: {', '.join(weekdays)}!" 
-                + "\n[Book at tenis4u!](https://app.tenis4u.pl/court/104))" if url else "",
+                + "\n[Book at tenis4u!](https://app.tenis4u.pl/court/104)" if url else "",
                 "color": 5793266,
                 "footer": {
                     "text": "tenis4u Monitor"
