@@ -45,7 +45,7 @@ class MessageFormatter:
         return {
             "title": "tenis4u Monitor Report",
             "description": f"Found {len(snapshot.free_slots)} free slots for: {', '.join(snapshot.weekdays)}!" 
-            + "\n[Book at tenis4u!]({url})" if url else "",
+            + f"\n[Book at tenis4u!]({url})" if url else "",
             "color": 5793266,
             "footer": {
                 "text": "tenis4u Monitor"
