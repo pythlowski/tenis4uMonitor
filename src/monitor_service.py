@@ -7,6 +7,7 @@ from settings import Settings
 from data_service import DataService
 from snapshots_manager import SnapshotManager
 from logger import Logger
+from models.snapshot import Snapshot
 
 class MonitorService:
 
@@ -21,6 +22,9 @@ class MonitorService:
         free_slots = self.data_service.get_free_slots()
 
         self.logger.info(f"Found {len(free_slots)} free slots.")
+        snapshot = Snapshot(weekdays=self.settings.weekdays, free_slots=free_slots)
+        self.snapshots_manager.save(snapshot=snapshot)
+
         self.notifier.send_alert(
             payload=MessageFormatter.discord_rich_format_payload(
                 free_slots, 
