@@ -26,7 +26,6 @@ class SnapshotManager:
             return Snapshot()
 
         return Snapshot.from_json(files[0])
-        
     
     def _get_all(self, newest_first:bool = True) -> list[Path]:
         dir_path = Path(self.DIRECTORY_NAME)
