@@ -1,6 +1,7 @@
 import json
 from datetime import datetime, time, timedelta
 
+from datetime_utils import DatetimeUtils
 from models.free_slot import FreeSlot
 
 
@@ -40,15 +41,11 @@ class SlotsComputer:
         return datetime.strptime(f"{date_str} {time_str}", "%Y/%m/%d %H:%M:%S")
 
 
-    def _set_time_for_datetime(self, dt: datetime, t: time) -> datetime:
-        return datetime.combine(dt.date(), t)
-
-
     def _get_acceptable_slots(self, begin_date: datetime, end_date: datetime, duration_hours: int = 1) -> list[datetime]:
         slots = []
 
-        acceptable_begin_date = self._set_time_for_datetime(begin_date, self.begin_time)
-        acceptable_end_date = self._set_time_for_datetime(end_date, self.end_time)
+        acceptable_begin_date = DatetimeUtils.set_time_for_datetime(begin_date, self.begin_time)
+        acceptable_end_date = DatetimeUtils.set_time_for_datetime(end_date, self.end_time)
 
         current_begin_date = max(acceptable_begin_date, begin_date)
         max_end_date = min(acceptable_end_date, end_date)
