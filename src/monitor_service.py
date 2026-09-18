@@ -5,7 +5,8 @@ from discord_notifier import DiscordNotifier
 from message_formatter import MessageFormatter
 from settings import Settings
 from data_service import DataService
-from snapshots_manager import SnapshotManager
+from snapshots_comparator import SnapshotsComparator
+from snapshots_repository import SnapshotRepository
 from logger import Logger
 from models.snapshot import Snapshot
 
@@ -16,14 +17,19 @@ class MonitorService:
         self.settings = settings
         self.notifier = DiscordNotifier(self.settings.api.discord_webhook_url)
         self.data_service = DataService(self.settings)
-        self.snapshots_manager = SnapshotManager()
+        self.snapshots_repository = SnapshotRepository()
+        self.snapshots_comparator = SnapshotsComparator()
 
     def run_once(self) -> None:
         free_slots = self.data_service.get_free_slots()
 
         self.logger.info(f"Found {len(free_slots)} free slots.")
-        snapshot = Snapshot(weekdays=self.settings.weekdays, free_slots=free_slots)
-        self.snapshots_manager.save(snapshot=snapshot)
+
+        old_snapshot = self.snapshots_repository.get_latest()
+        new_snapshot = Snapshot(weekdays=self.settings.weekdays, free_slots=free_slots)
+        self.snapshots_repository.save(snapshot=new_snapshot)
+
+        new_slots = self.snapshots_comparator.get_new_slots(new=new_snapshot, old=old_snapshot)
 
         self.notifier.send_alert(
             payload=MessageFormatter.discord_rich_format_payload(

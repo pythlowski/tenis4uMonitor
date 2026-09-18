@@ -6,7 +6,7 @@ from pathlib import Path
 from models.snapshot import Snapshot
 from logger import Logger
 
-class SnapshotManager:
+class SnapshotRepository:
     MAX_FILES = 10
     DIRECTORY_NAME = "snapshots"
     FILENAME_PATTERN = "snapshot_*.json"
@@ -45,7 +45,7 @@ class SnapshotManager:
 
 
 if __name__ == "__main__":
-    manager = SnapshotManager()
+    manager = SnapshotRepository()
 
     # snapshot = Snapshot(weekdays=[], free_slots=[])
     # manager.save(snapshot=snapshot)
