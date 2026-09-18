@@ -7,3 +7,6 @@ class FreeSlot:
     courtName: str
     date: datetime
     durationHours: int = 1
+
+    def __eq__(self, other):
+        return self.date == other.date and self.courtName == other.courtName
