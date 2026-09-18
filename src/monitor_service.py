@@ -1,6 +1,4 @@
-import logging
 import time
-import datetime
 from urllib.error import HTTPError, URLError
 
 from discord_notifier import DiscordNotifier

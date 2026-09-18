@@ -2,7 +2,7 @@ from time import time
 
 from api_client import APIClient
 from datetime_utils import DatetimeUtils
-from models.free_slot import FreeSlot
+from src.models.free_slot import FreeSlot
 from settings import Settings
 from slots_computer import SlotsComputer
 

@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from models.free_slot import FreeSlot
+from src.models.free_slot import FreeSlot
 
 @dataclass
 class Snapshot:

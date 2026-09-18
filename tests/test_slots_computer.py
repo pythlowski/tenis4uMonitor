@@ -1,7 +1,7 @@
 import unittest
 from datetime import datetime, time
 
-from slots_computer import SlotsComputer
+from app.slots_computer import SlotsComputer
 
 
 class TestSlotsComputer(unittest.TestCase):
