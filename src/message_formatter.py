@@ -34,7 +34,11 @@ class MessageFormatter:
             }
         ] if url else []
         
-        return {"embeds": embeds, "components": components, "allowed_mentions": {"parse": ["everyone"]}}
+        return {
+            "content": "@everyone" if new_slots else "", 
+            "embeds": embeds, 
+            "components": components, 
+            "allowed_mentions": {"parse": ["everyone"]}}
     
     @staticmethod
     def snapshot_embed(snapshot: Snapshot, url: str = None) -> dict:
@@ -82,8 +86,7 @@ class MessageFormatter:
 
     @staticmethod
     def _get_new_slots_description(new_slots: list[FreeSlot]) -> str:
-        return "\n".join(f"- {DatetimeUtils.get_weekday(slot.date)} {slot.date.strftime('%d.%m.%Y %H:%M')} - {slot.courtName}" for slot in new_slots) \
-            + "\n@everyone"
+        return "\n".join(f"- {DatetimeUtils.get_weekday(slot.date)} {slot.date.strftime('%d.%m.%Y %H:%M')} - {slot.courtName}" for slot in new_slots)
 
 if __name__ == "__main__":
     settings = Settings()
