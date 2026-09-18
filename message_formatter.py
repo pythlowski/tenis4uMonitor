@@ -8,29 +8,51 @@ from datetime_utils import DatetimeUtils
 
 class MessageFormatter:
     @staticmethod
-    def format(free_slots: list[FreeSlot]) -> str:
+    def format_payload(free_slots: list[FreeSlot]) -> str:
         if not free_slots:
             return "No free slots found."
 
-        return f"Found {len(free_slots)} free slots\n\n" + "\n".join(
+        message = f"Found {len(free_slots)} free slots\n\n" + "\n".join(
                 f"- {slot.courtName} at {DatetimeUtils.get_weekday(slot.date)} {slot.date.strftime('%d-%m-%Y %H:%M')}"
                 for slot in free_slots
         )
+
+        return {"content": message}
     
     @staticmethod
-    def discord_rich_format(free_slots: list[FreeSlot], weekdays: list[str], url: str = None) -> dict:
-        embed = {
-            "title": "tenis4u Monitor Report",
-            "description": f"Found {len(free_slots)} free slots for: {', '.join(weekdays)}!" + (f"\n[Book on tenis4u!]({url})" if url else ""),
-            "color": 5793266,
-            "footer": {
-                "text": "Monitoring Bot"
-            },
-            "timestamp": DatetimeUtils.get_current_datetime(),
-            "fields": MessageFormatter._get_fields(free_slots),
-        }
+    def discord_rich_format_payload(free_slots: list[FreeSlot], weekdays: list[str], url: str = None) -> dict:
+        embeds = [
+            {
+                "title": "tenis4u Monitor Report",
+                "description": f"Found {len(free_slots)} free slots for: {', '.join(weekdays)}!" 
+                + "\n[Book at tenis4u!](https://app.tenis4u.pl/court/104))" if url else "",
+                "color": 5793266,
+                "footer": {
+                    "text": "tenis4u Monitor"
+                },
+                "timestamp": DatetimeUtils.get_current_datetime(),
+                "fields": MessageFormatter._get_fields(free_slots),
+            }
+        ]
 
-        return embed
+        components = [
+            {
+                "type": 1,
+                "components": [
+                    {
+                        "type": 2,
+                        "style": 5,
+                        "label": "Book here!",
+                        "url": "https://discord.com",
+                        "emoji": {
+                            "name": "🎾"
+                        }
+                    }
+                ]
+            }
+        ] if url else []
+        
+        return {"embeds": embeds, "components": components}
 
     @staticmethod
     def _get_fields(free_slots: list[FreeSlot]) -> list[dict]:
@@ -64,5 +86,6 @@ if __name__ == "__main__":
         FreeSlot(courtName="badminton 3", date=datetime.datetime(2024, 6, 18, 19, 0)),
     ]
     weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Sunday"]
-    embed = MessageFormatter.discord_rich_format(free_slots, weekdays, "https://app.tenis4u.pl/court/104")
-    discord_notifier.send_alert(embed=embed)
+    payload = MessageFormatter.discord_rich_format_payload(free_slots, weekdays, "https://app.tenis4u.pl/court/104")
+    print(payload)
+    discord_notifier.send_alert(payload=payload)

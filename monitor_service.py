@@ -24,7 +24,7 @@ class MonitorService:
 
         self.logger.info(f"Found {len(free_slots)} free slots.")
         self.notifier.send_alert(
-            embed=MessageFormatter.discord_rich_format(
+            payload=MessageFormatter.discord_rich_format_payload(
                 free_slots, 
                 self.settings.weekdays, 
                 url=self.settings.api.url + f"/court/{self.settings.facility_id}"
