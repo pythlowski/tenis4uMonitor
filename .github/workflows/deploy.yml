@@ -1,0 +1,23 @@
+name: Auto Deploy to OCI
+
+on:
+  push:
+    branches:
+      - main   # Change to 'master' if your main branch is named master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Execute remote SSH commands
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.OCI_HOST }}
+          username: ${{ secrets.OCI_USERNAME }}
+          key: ${{ secrets.OCI_SSH_KEY }}
+          script: |
+            cd ~/YOUR_REPO_NAME
+            git pull origin main
+            source venv/bin/activate
+            pip install -r requirements.txt
+            sudo systemctl restart tenis4uscript.service
