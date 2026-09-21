@@ -17,6 +17,7 @@ class SnapshotRepository:
     
     def save(self, snapshot: Snapshot) -> None:
         path = Path(f"{self.DIRECTORY_NAME}/{self._get_filename()}")
+        path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(snapshot.model_dump_json(indent=2), encoding="utf-8")
         self._ensure_rolling()
 
