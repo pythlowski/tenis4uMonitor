@@ -25,7 +25,7 @@ class MessageFormatter:
                         "type": 2,
                         "style": 5,
                         "label": "Book here!",
-                        "url": "https://discord.com",
+                        "url": url,
                         "emoji": {
                             "name": "🎾"
                         }
