@@ -16,7 +16,8 @@ jobs:
           username: ${{ secrets.OCI_USERNAME }}
           key: ${{ secrets.OCI_SSH_KEY }}
           script: |
-            cd ~/YOUR_REPO_NAME
+            set -e
+            cd ~/tenis4uMonitor
             git pull origin main
             source venv/bin/activate
             pip install -r requirements.txt
