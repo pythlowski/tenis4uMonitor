@@ -24,7 +24,7 @@ jobs:
             
             # Auto-create .env from .env.example
             cp .env.example .env
-            sed -i "s|^APP_ENV=.*|APP_ENV='prod'|" .env
+            sed -i "s|^APP_ENV=.*|APP_ENV=prod|" .env
             sed -i "s|^DEV_API__DISCORD_WEBHOOK_URL=.*|DEV_API__DISCORD_WEBHOOK_URL=${{ secrets.DEV_API__DISCORD_WEBHOOK_URL }}|" .env
             sed -i "s|^PROD_API__DISCORD_WEBHOOK_URL=.*|PROD_API__DISCORD_WEBHOOK_URL=${{ secrets.PROD_API__DISCORD_WEBHOOK_URL }}|" .env
             
