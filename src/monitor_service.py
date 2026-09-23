@@ -29,15 +29,16 @@ class MonitorService:
         new_snapshot = Snapshot(weekdays=self.settings.weekdays, free_slots=free_slots)
         self.snapshots_repository.save(snapshot=new_snapshot)
 
-        new_slots = self.snapshots_comparator.get_new_slots(new=new_snapshot, old=old_snapshot)
+        snapshots_diff = self.snapshots_comparator.get_diff(old=old_snapshot, new=new_snapshot)
 
-        self.notifier.send_alert(
-            payload=MessageFormatter.get_payload(
-                snapshot=new_snapshot,
-                new_slots=new_slots, 
-                url=self.settings.api.url + f"/court/{self.settings.facility_id}"
+        if not snapshots_diff.are_equal:
+            self.notifier.send_alert(
+                payload=MessageFormatter.get_payload(
+                    snapshot=new_snapshot,
+                    new_slots=snapshots_diff.new_slots, 
+                    url=self.settings.api.url + f"/court/{self.settings.facility_id}"
+                )
             )
-        )
     
     def start(self) -> None:
         while True:

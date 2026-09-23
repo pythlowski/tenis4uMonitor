@@ -15,6 +15,7 @@ class DiscordNotifier:
                 response = requests.post(self.webhook_url, json=payload)
 
                 if response.status_code == 204:
+                    self.logger.info("Message sent.")
                     return True
 
                 if response.status_code == 429:
