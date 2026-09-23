@@ -3,7 +3,9 @@ name: Auto Deploy to OCI
 on:
   push:
     branches:
-      - main   # Change to 'master' if your main branch is named master
+      - main
+    paths-ignore:
+      - 'tests/**'
 
 jobs:
   deploy:
@@ -19,6 +21,13 @@ jobs:
             set -e
             cd ~/tenis4uMonitor
             git pull origin main
+            
+            # Auto-create .env from .env.example
+            cp .env.example .env
+            sed -i "s|^APP_ENV=.*|APP_ENV='prod'|" .env
+            sed -i "s|^DEV_API__DISCORD_WEBHOOK_URL=.*|DEV_API__DISCORD_WEBHOOK_URL=${{ secrets.DEV_API__DISCORD_WEBHOOK_URL }}|" .env
+            sed -i "s|^PROD_API__DISCORD_WEBHOOK_URL=.*|PROD_API__DISCORD_WEBHOOK_URL=${{ secrets.PROD_API__DISCORD_WEBHOOK_URL }}|" .env
+            
             source venv/bin/activate
             pip install -r requirements.txt
             sudo systemctl restart tenis4uscript.service
