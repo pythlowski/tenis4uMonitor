@@ -10,7 +10,7 @@ from logger import Logger
 class SnapshotRepository:
     MAX_FILES = 10
     DIRECTORY_NAME = "snapshots"
-    FILENAME_PATTERN = "snapshot_*.json"
+    FILENAME_PATTERN = "snapshot_latest.json"
 
     def __init__(self):
         self.logger = Logger("SNAPSHOTS")
@@ -19,7 +19,7 @@ class SnapshotRepository:
         path = Path(f"{self.DIRECTORY_NAME}/{self._get_filename()}")
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(snapshot.model_dump_json(indent=2), encoding="utf-8")
-        self._ensure_rolling()
+        # self._ensure_rolling()
 
     def get_latest(self) -> Snapshot:
         file_paths: list[Path] = self._get_all(newest_first=True)
@@ -42,8 +42,9 @@ class SnapshotRepository:
                 self.logger.error(f"Error deleting old file {old_file}.", e)
 
     def _get_filename(self) -> str:
-        timestamp: str = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        return self.FILENAME_PATTERN.replace("*", timestamp)
+        return self.FILENAME_PATTERN
+        # timestamp: str = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        # return self.FILENAME_PATTERN.replace("*", timestamp)
 
 
 if __name__ == "__main__":

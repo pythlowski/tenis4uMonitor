@@ -1,12 +1,21 @@
 from datetime import datetime
 
+from logger import Logger
 from models.free_slot import FreeSlot
 from models.snapshot import Snapshot
 
 
 class SnapshotsComparator:
-    def get_new_slots(self, new: Snapshot, old: Snapshot):
-        return [slot for slot in new.free_slots if slot not in old.free_slots]
+    def __init__(self):
+        self.logger = Logger(name="SNAP_COMPARE")
+
+    def get_new_slots(self, new: Snapshot, old: Snapshot) -> list[FreeSlot]:
+        new_slots = [slot for slot in new.free_slots if slot not in old.free_slots]
+
+        if new_slots:
+            self.logger.info(f"Found {len(new_slots)} new slots.")
+
+        return new_slots
 
 
 if __name__ == "__main__":
