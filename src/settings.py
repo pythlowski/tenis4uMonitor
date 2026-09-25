@@ -54,7 +54,7 @@ class Settings(BaseSettings):
         env_file=".env",
         env_prefix=f"{CURRENT_ENV.upper()}_",
         env_nested_delimiter="__",
-        toml_file="config.toml",
+        toml_file=("config.toml", f"config.{CURRENT_ENV}.toml"),
         extra="ignore",
     )
 
@@ -78,4 +78,5 @@ class Settings(BaseSettings):
 
 if __name__ == "__main__":
     settings = Settings()
-    print(settings.api.discord_webhook_url)
+    print(settings.api.fetch_interval_minutes)
+    print(settings.api.headers)
