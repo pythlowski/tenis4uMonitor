@@ -71,22 +71,22 @@ class TestDayLines:
         assert day_lines(entries(same))[1:] == ["- 18:00–19:00 · court 1, court 2, court 10"]
 
     def test_facility_with_court_in_parentheses(self):
-        assert day_lines(entries([MON_1], "Hala"))[1] == "- 16:30–19:00 · Hala (court 1)"
+        assert day_lines(entries([MON_1], "Hala"))[1] == "- 16:30–19:00 · Hala (c1)"
 
     def test_same_time_sorted_by_facility_order(self):
         items = entries([MON_10], "B", order=1) + entries([MON_10], "A", order=0)
-        assert day_lines(items)[1:] == ["- 18:00–19:00 · A (court 10), B (court 10)"]
+        assert day_lines(items)[1:] == ["- 18:00–19:00 · A (c10), B (c10)"]
 
     def test_one_line_per_range_with_courts_grouped_by_facility(self):
-        items = entries([w(23, (16, 0), (17, 0), "b2", "B2"), w(23, (16, 0), (17, 0), "b1", "B1")], "Fame", order=1)
-        items += entries([w(23, (16, 0), (17, 0), "x5", "B5"), w(23, (17, 0), (18, 0), "x4", "B4")], "Blonia", order=0)
+        items = entries([w(23, (16, 0), (17, 0), "b2", "Badminton 2"), w(23, (16, 0), (17, 0), "b1", "Badminton 1")], "Fame", order=1)
+        items += entries([w(23, (16, 0), (17, 0), "x5", "Badminton 5"), w(23, (17, 0), (18, 0), "x4", "Padel Hala 4")], "Blonia", order=0)
         assert day_lines(items) == [
             "**Monday 23.11**",
             "- 16:00–17:00 · Blonia (b5), Fame (b1, b2)",
-            "- 17:00–18:00 · Blonia (b4)",
+            "- 17:00–18:00 · Blonia (ph4)",
         ]
-        assert day_lines(entries([w(23, (16, 0), (17, 0), "b2", "B2"), w(23, (16, 0), (17, 0), "b1", "B1")]))[1:] == [
-            "- 16:00–17:00 · b1, b2"
+        assert day_lines(entries([w(23, (16, 0), (17, 0), "b2", "Badminton 2"), w(23, (16, 0), (17, 0), "b1", "Badminton 1")]))[1:] == [
+            "- 16:00–17:00 · badminton 1, badminton 2"  # full names without a facility
         ]
 
 
@@ -163,9 +163,9 @@ class TestGlobalPayloads:
         assert embed["title"] == GLOBAL_TITLE
         assert embed["description"].split("\n") == [
             "**Monday 23.11**",
-            f"- 16:30–19:00 · [Hala XYZ]({URL}) (court 1)",
+            f"- 16:30–19:00 · [Hala XYZ]({URL}) (c1)",
             "**Tuesday 24.11**",
-            f"- 18:00–20:00 · [Blonia]({URL_B}) (court 1)",
+            f"- 18:00–20:00 · [Blonia]({URL_B}) (c1)",
             "",
             "**Book:**",
             f"- [Hala XYZ]({URL})",
@@ -176,7 +176,7 @@ class TestGlobalPayloads:
 
     def test_facility_name_is_plain_without_url(self, formatter):
         [payload] = formatter.global_payloads([result([MON_1], name="Hala", url="")])
-        assert "- 16:30–19:00 · Hala (court 1)" in payload["embeds"][0]["description"]
+        assert "- 16:30–19:00 · Hala (c1)" in payload["embeds"][0]["description"]
 
     def test_new_windows_show_facility_court_and_range(self, formatter):
         results = [
@@ -188,9 +188,9 @@ class TestGlobalPayloads:
         assert [e.get("title") for e in payload["embeds"]] == [NEW_WINDOWS_TITLE, GLOBAL_TITLE]
         assert payload["embeds"][0]["description"].split("\n") == [
             "**Monday 23.11**",
-            f"- 16:30–19:00 · [Hala XYZ]({URL}) (court 1)",
+            f"- 16:30–19:00 · [Hala XYZ]({URL}) (c1)",
             "**Tuesday 24.11**",
-            f"- 18:00–20:00 · [Blonia]({URL_B}) (court 1)",
+            f"- 18:00–20:00 · [Blonia]({URL_B}) (c1)",
         ]
 
     def test_no_ping_when_only_baselines(self, formatter):
@@ -236,3 +236,13 @@ def test_join_limited_truncates_with_count():
     text = join_limited(lines, 50)
     assert len(text) <= 50
     assert text.endswith("more")
+
+
+def test_short_court_name():
+    from notifications.message_formatter import short_court_name
+
+    assert short_court_name("Badminton 1") == "B1"
+    assert short_court_name("Padel 1") == "P1"
+    assert short_court_name("Padel Hala 1") == "PH1"
+    assert short_court_name("Kort 12") == "K12"
+    assert short_court_name("Kort centralny") == "Kort centralny"

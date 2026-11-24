@@ -1,5 +1,4 @@
 import calendar
-import re
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, time, timedelta
@@ -46,18 +45,6 @@ class AvailabilityComputer:
             for start, end in split_into_windows(span, duration)
         ]
         return sorted(windows)
-
-
-def short_court_name(name: str) -> str:
-    """Initials of the words plus the number in the name: 'Badminton 1' -> 'B1', 'Padel Hala 1' -> 'PH1'.
-
-    Names without a number are kept as they are.
-    """
-    number = re.search(r"\d+", name)
-    if not number:
-        return name
-    initials = "".join(word[0].upper() for word in name.split() if not word[0].isdigit())
-    return f"{initials}{number.group()}"
 
 
 def split_into_windows(
