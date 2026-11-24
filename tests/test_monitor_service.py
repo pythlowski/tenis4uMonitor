@@ -234,3 +234,16 @@ class TestSecondsUntilNextSlot:
         # Interval = 60 min (3600 s). At 10:45:00 → elapsed = 2700 → remainder = 2700 → wait = 900 s
         result = self._seconds(minute=45, second=0, interval=60)
         assert result == pytest.approx(900, abs=1e-3)
+
+
+class TestProxyRouting:
+    def test_only_tenis4u_goes_through_the_proxy_pool(self, make_settings):
+        with patch("monitor_service.ProxyBackgroundService") as proxy_service:
+            service = MonitorService(make_settings(TWO_FACILITIES))
+            twojtenis = service._provider("twojtenis")
+            assert twojtenis.http.proxy_service is None
+            proxy_service.assert_not_called()  # the pool is not even started without a proxied provider
+
+            tenis4u = service._provider("tenis4u")
+            assert tenis4u.http.proxy_service is proxy_service.return_value
+            proxy_service.assert_called_once()

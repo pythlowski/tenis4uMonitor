@@ -9,9 +9,12 @@ PROVIDERS: dict[str, type[SlotProvider]] = {
 }
 
 
-def create_provider(name: str, http: HttpClient) -> SlotProvider:
+def provider_class(name: str) -> type[SlotProvider]:
     try:
-        provider_cls = PROVIDERS[name]
+        return PROVIDERS[name]
     except KeyError:
         raise ValueError(f"Unknown provider {name!r}. Known providers: {', '.join(sorted(PROVIDERS))}") from None
-    return provider_cls(http)
+
+
+def create_provider(name: str, http: HttpClient) -> SlotProvider:
+    return provider_class(name)(http)
