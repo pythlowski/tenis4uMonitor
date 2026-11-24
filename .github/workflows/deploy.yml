@@ -25,13 +25,13 @@ jobs:
             # Generate .env from secrets (values are substituted by GitHub Actions)
             cat > .env <<'EOF'
             APP_ENV=prod
+            DEV_DISCORD__GLOBAL_WEBHOOK_URL=${{ secrets.DEV_DISCORD__GLOBAL_WEBHOOK_URL }}
             PROD_DISCORD__GLOBAL_WEBHOOK_URL=${{ secrets.PROD_DISCORD__GLOBAL_WEBHOOK_URL }}
-            PROD_DISCORD__FACILITY__TENIS4U_104_WEBHOOK_URL=${{ secrets.PROD_DISCORD__FACILITY__TENIS4U_104_WEBHOOK_URL }}
-            PROD_DISCORD__FACILITY__BLONIA_BADMINTON_WEBHOOK_URL=${{ secrets.PROD_DISCORD__FACILITY__BLONIA_BADMINTON_WEBHOOK_URL }}
+            DEV_DISCORD__FACILITY__FAME_SPORT_CLUB_WEBHOOK_URL=${{ secrets.DEV_DISCORD__FACILITY__FAME_SPORT_CLUB_WEBHOOK_URL }}
+            PROD_DISCORD__FACILITY__FAME_SPORT_CLUB_WEBHOOK_URL=${{ secrets.PROD_DISCORD__FACILITY__FAME_SPORT_CLUB_WEBHOOK_URL }}
+            DEV_DISCORD__FACILITY__BLONIA_SPORT_WEBHOOK_URL=${{ secrets.DEV_DISCORD__FACILITY__BLONIA_SPORT_WEBHOOK_URL }}
+            PROD_DISCORD__FACILITY__BLONIA_SPORT_WEBHOOK_URL=${{ secrets.PROD_DISCORD__FACILITY__BLONIA_SPORT_WEBHOOK_URL }}
             EOF
-
-            # Snapshots from the single-facility format are no longer read
-            rm -f snapshots/snapshot_latest.json snapshots/snapshot_*.json
 
             source venv/bin/activate
             pip install -r requirements.txt
