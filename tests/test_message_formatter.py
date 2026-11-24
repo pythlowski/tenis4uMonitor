@@ -59,16 +59,16 @@ class TestDayLines:
     def test_groups_by_date_then_sorts_by_time_and_court(self):
         assert day_lines(entries([TUE_1, MON_1_LATE, MON_2, MON_1])) == [
             "**Monday 23.11**",
-            "- 16:30–19:00 · court 1",
-            "- 17:30–19:00 · court 2",
-            "- 20:00–22:30 · court 1",
+            "- 16:30–19:00 · c1",
+            "- 17:30–19:00 · c2",
+            "- 20:00–22:30 · c1",
             "**Tuesday 24.11**",
-            "- 18:00–20:00 · court 1",
+            "- 18:00–20:00 · c1",
         ]
 
     def test_same_time_courts_in_natural_order(self):
         same = [w(23, (18, 0), (19, 0), f"c{n}", f"Court {n}") for n in (10, 2, 1)]
-        assert day_lines(entries(same))[1:] == ["- 18:00–19:00 · court 1, court 2, court 10"]
+        assert day_lines(entries(same))[1:] == ["- 18:00–19:00 · c1, c2, c10"]
 
     def test_facility_with_court_in_parentheses(self):
         assert day_lines(entries([MON_1], "Hala"))[1] == "- 16:30–19:00 · Hala (c1)"
@@ -86,7 +86,7 @@ class TestDayLines:
             "- 17:00–18:00 · Blonia (ph4)",
         ]
         assert day_lines(entries([w(23, (16, 0), (17, 0), "b2", "Badminton 2"), w(23, (16, 0), (17, 0), "b1", "Badminton 1")]))[1:] == [
-            "- 16:00–17:00 · badminton 1, badminton 2"  # full names without a facility
+            "- 16:00–17:00 · b1, b2"
         ]
 
 
@@ -94,7 +94,7 @@ class TestFacilityEmbed:
     def test_lists_courts_then_booking_link(self, formatter):
         embed = formatter.facility_embed(result([MON_1, MON_2]))
         lines = embed["description"].split("\n")
-        assert lines[0:3] == ["**Monday 23.11**", "- 16:30–19:00 · court 1", "- 17:30–19:00 · court 2"]
+        assert lines[0:3] == ["**Monday 23.11**", "- 16:30–19:00 · c1", "- 17:30–19:00 · c2"]
         assert lines[-1].startswith("[Book") and lines[-1].endswith(f"]({URL})")
 
     def test_title_url_and_footer(self, formatter):
@@ -130,7 +130,7 @@ class TestFacilityPayload:
         payload = formatter.facility_payload(result([MON_1, MON_2], new=[MON_2]))
         assert payload["content"] == "@everyone"
         assert payload["embeds"][1]["title"] == NEW_WINDOWS_TITLE
-        assert payload["embeds"][1]["description"] == "**Monday 23.11**\n- 17:30–19:00 · court 2"
+        assert payload["embeds"][1]["description"] == "**Monday 23.11**\n- 17:30–19:00 · c2"
         assert payload["allowed_mentions"] == {"parse": ["everyone"]}
 
     def test_no_ping_without_new_windows(self, formatter):

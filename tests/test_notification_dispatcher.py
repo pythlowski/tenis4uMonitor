@@ -80,3 +80,19 @@ def test_logs_destination_and_no_change(caplog):
     assert "nothing to send" in caplog.text
     assert "'a' report to its facility webhook" in caplog.text
     assert "global webhook" in caplog.text
+
+
+def test_report_colour_alternates_per_channel():
+    from notifications.message_formatter import DARK_BLUE, LIGHT_BLUE
+
+    d, notifier = dispatcher("both")
+    for changed_b in (False, True, False):
+        d.dispatch([result("a", changed=True), result("b", changed=changed_b)])
+    colors = {}
+    for url, payload in notifier.sent:
+        colors.setdefault(url, []).append(payload["embeds"][0]["color"])
+    assert colors == {
+        "https://global": [LIGHT_BLUE, DARK_BLUE, LIGHT_BLUE],
+        "https://a": [LIGHT_BLUE, DARK_BLUE, LIGHT_BLUE],
+        "https://b": [LIGHT_BLUE],
+    }
