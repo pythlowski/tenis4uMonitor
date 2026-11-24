@@ -5,7 +5,7 @@ days_ahead = 14                     # look-ahead horizon in days (1-14)
 # Global filters, applied to every facility
 begin_time = "16:30"
 end_time = "22:30"
-min_duration_minutes = 60
+duration_minutes = 60              # every window is exactly this long, starting every 30 minutes
 weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
 [discord]

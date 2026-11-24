@@ -145,7 +145,8 @@ class TestRunOnce:
         good.courts = [COURT, extra]
         [result] = service.run_once()
 
-        assert [w.court_id for w in result.new_windows] == ["c2"]
+        assert {w.court_id for w in result.new_windows} == {"c2"}
+        assert len(result.new_windows) == 3  # 17-18, 17:30-18:30, 18-19
         assert result.changed
 
     def test_booking_url_from_provider_or_override(self, run_once_service):

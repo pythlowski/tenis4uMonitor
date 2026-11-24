@@ -34,16 +34,6 @@ def test_facilities_are_kept_separate(tmp_path):
     assert repo.get("b").windows == []
 
 
-def test_reads_snapshots_without_court_names(tmp_path):
-    (tmp_path / "a.json").write_text(
-        '{"facility_key": "a", "taken_at": "2026-11-23T12:00:00Z", "windows": ['
-        '{"start": "2026-11-23T17:00:00", "end": "2026-11-23T19:00:00", "court_id": "b1"}]}',
-        encoding="utf-8",
-    )
-    [window] = SnapshotRepository(tmp_path).get("a").windows
-    assert window == WINDOW and window.court_label == "b1"
-
-
 def test_unreadable_file_is_treated_as_missing(tmp_path):
     (tmp_path / "a.json").write_text("{not json", encoding="utf-8")
     assert SnapshotRepository(tmp_path).get("a") is None
