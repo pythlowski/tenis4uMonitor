@@ -116,3 +116,13 @@ def test_result_is_sorted_by_start_end_court():
 def test_windows_carry_the_court_name():
     [window] = compute([court("1", dt(MONDAY, 17), dt(MONDAY, 18))])
     assert window.court_name == "Court 1"
+
+
+def test_short_court_name():
+    from availability import short_court_name
+
+    assert short_court_name("Badminton 1") == "B1"
+    assert short_court_name("Padel 1") == "P1"
+    assert short_court_name("Padel Hala 1") == "PH1"
+    assert short_court_name("Kort 12") == "K12"
+    assert short_court_name("Kort centralny") == "Kort centralny"

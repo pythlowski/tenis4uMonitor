@@ -1,8 +1,9 @@
 import datetime
+from dataclasses import replace
 import time
 from typing import Callable
 
-from availability import AvailabilityComputer
+from availability import AvailabilityComputer, short_court_name
 from http_client import HttpClient
 from logger import Logger
 from models.facility_result import FacilityResult
@@ -62,7 +63,10 @@ class MonitorService:
 
     def _process(self, facility: FacilityConfig, date_from: datetime.date, date_to: datetime.date) -> FacilityResult:
         provider = self._provider(facility.provider)
-        courts = provider.fetch_availability(facility, date_from, date_to)
+        courts = [
+            replace(court, court_name=short_court_name(court.court_name))
+            for court in provider.fetch_availability(facility, date_from, date_to)
+        ]
         windows = self.computer.compute(courts)
         self.logger.info(f"[{facility.key}] Found {len(windows)} free windows.")
 

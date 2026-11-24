@@ -21,6 +21,7 @@ NEW_WINDOWS_COLOR = 15906135
 FOOTER = "Monitor"
 GLOBAL_TITLE = "Free courts"
 NEW_WINDOWS_TITLE = "New free windows!"
+NO_WINDOWS = "No free windows."
 
 
 def format_range(start: datetime, end: datetime) -> str:
@@ -60,24 +61,27 @@ def entries(windows: list[FreeWindow], facility: str = "", order: int = 0) -> li
 def day_lines(items: list[Entry]) -> list[str]:
     """
     **Monday 23.11**
-    - 16:30–17:30 · [Facility](url) (court 1)    with a facility (global channel)
-    - 16:30–17:30 · court 1                      without one
+    - 16:00–17:00 · [Błonia Sport](url) (b1, b2), [Fame Sport Club](url) (b4)    with facilities (global channel)
+    - 16:00–17:00 · b1, b2                                                       without them
 
-    One line per window; days in date order, within a day by time, then facility, then court.
+    One line per distinct time range; days in date order, ranges by time, then facilities, then courts.
     """
-    ordered = sorted(
-        items, key=lambda e: (e[0].start, e[0].end, e[2], natural_key(e[0].court_name))
-    )
+    ranges: dict[tuple[datetime, datetime], dict[tuple[int, str], list[str]]] = {}
+    for window, facility, order in items:
+        courts = ranges.setdefault((window.start, window.end), {}).setdefault((order, facility), [])
+        courts.append(window.court_name.lower())
+
     lines: list[str] = []
     current_day: date | None = None
-    for window, facility, _ in ordered:
-        day = window.start.date()
-        if day != current_day:
-            lines.append(f"**{day_label(day)}**")
-            current_day = day
-        court = window.court_name.lower()
-        place = f"{facility} ({court})" if facility else court
-        lines.append(f"- {format_range(window.start, window.end)} · {place}")
+    for (start, end), facilities in sorted(ranges.items()):
+        if start.date() != current_day:
+            current_day = start.date()
+            lines.append(f"**{day_label(current_day)}**")
+        places = []
+        for (_, facility), courts in sorted(facilities.items(), key=lambda item: item[0][0]):
+            names = ", ".join(sorted(dict.fromkeys(courts), key=natural_key))
+            places.append(f"{facility} ({names})" if facility else names)
+        lines.append(f"- {format_range(start, end)} · {', '.join(places)}")
     return lines
 
 
@@ -137,20 +141,14 @@ class MessageFormatter:
 
     # ---- embeds -----------------------------------------------------------
 
-    def summary(self, count: int) -> str:
-        if count:
-            return f"Found {count} free window{'s' if count != 1 else ''}."
-        return f"No free windows."
-
     def facility_embed(self, result: FacilityResult) -> dict:
         book = [f"[Book here!]({result.booking_url})"] if result.booking_url else []
-        head = [self.summary(len(result.windows)), ""]
-        body_limit = MAX_DESCRIPTION - len("\n".join([*head, *book])) - 2
-        body = join_limited(day_lines(entries(result.windows)), body_limit)
+        body_limit = MAX_DESCRIPTION - len("\n".join(book)) - 2
+        body = join_limited(day_lines(entries(result.windows)), body_limit) or NO_WINDOWS
 
         embed = {
             "title": result.facility.name[:MAX_TITLE],
-            "description": "\n".join([*head, *([body, ""] if body else []), *book]).strip(),
+            "description": "\n".join([body, *([""] + book if book else [])]),
             "color": REPORT_COLOR,
             "footer": {"text": FOOTER},
             "timestamp": self._now(),
@@ -170,15 +168,12 @@ class MessageFormatter:
 
     def global_embeds(self, results: list[FacilityResult]) -> list[dict]:
         """All facilities merged into one list, then the booking links; split only to fit Discord limits."""
-        total = sum(len(result.windows) for result in results)
-        lines = [self.summary(total)]
         merged = [
             entry
             for order, result in enumerate(results)
             for entry in entries(result.windows, facility_label(result), order)
         ]
-        if merged:
-            lines += ["", *day_lines(merged)]
+        lines = day_lines(merged) or [NO_WINDOWS]
 
         links = [f"- [{result.facility.name}]({result.booking_url})" for result in results if result.booking_url]
         if links:
