@@ -1,6 +1,6 @@
-fetch_interval_minutes = 20
-max_proxies_ready = 5
-days_ahead = 7                     # look-ahead horizon in days (1-14)
+fetch_interval_minutes = 5
+max_proxies_ready = 10
+days_ahead = 14                     # look-ahead horizon in days (1-14)
 
 # Global filters, applied to every facility
 begin_time = "16:30"
