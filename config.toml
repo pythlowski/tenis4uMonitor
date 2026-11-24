@@ -19,3 +19,10 @@ provider = "tenis4u"
 facility_id = "104"
 court_type = "badminton"           # tennis | badminton | padel
 # booking_url = "https://..."      # optional override of the provider's booking link
+
+[[facilities]]
+key = "blonia_badminton"
+name = "Błonia Sport"
+provider = "twojtenis"
+facility_id = "958662f0-0bd2-4fdc-8bef-bb2d69761adb"   # club GUID
+court_type = "badminton"
