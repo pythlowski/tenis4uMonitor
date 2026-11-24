@@ -22,12 +22,17 @@ jobs:
             cd ~/tenis4uMonitor
             git pull origin main
             
-            # Auto-create .env from .env.example
-            cp .env.example .env
-            sed -i "s|^APP_ENV=.*|APP_ENV=prod|" .env
-            sed -i "s|^DEV_API__DISCORD_WEBHOOK_URL=.*|DEV_API__DISCORD_WEBHOOK_URL=${{ secrets.DEV_API__DISCORD_WEBHOOK_URL }}|" .env
-            sed -i "s|^PROD_API__DISCORD_WEBHOOK_URL=.*|PROD_API__DISCORD_WEBHOOK_URL=${{ secrets.PROD_API__DISCORD_WEBHOOK_URL }}|" .env
-            
+            # Generate .env from secrets (values are substituted by GitHub Actions)
+            cat > .env <<'EOF'
+            APP_ENV=prod
+            PROD_DISCORD__GLOBAL_WEBHOOK_URL=${{ secrets.PROD_DISCORD__GLOBAL_WEBHOOK_URL }}
+            PROD_DISCORD__FACILITY__TENIS4U_104_WEBHOOK_URL=${{ secrets.PROD_DISCORD__FACILITY__TENIS4U_104_WEBHOOK_URL }}
+            PROD_DISCORD__FACILITY__BLONIA_BADMINTON_WEBHOOK_URL=${{ secrets.PROD_DISCORD__FACILITY__BLONIA_BADMINTON_WEBHOOK_URL }}
+            EOF
+
+            # Snapshots from the single-facility format are no longer read
+            rm -f snapshots/snapshot_latest.json snapshots/snapshot_*.json
+
             source venv/bin/activate
             pip install -r requirements.txt
             sudo systemctl restart tenis4uscript.service
