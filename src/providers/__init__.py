@@ -1,9 +1,11 @@
 from http_client import HttpClient
 from providers.base import SlotProvider
 from providers.tenis4u import Tenis4uProvider
+from providers.twojtenis import TwojTenisProvider
 
 PROVIDERS: dict[str, type[SlotProvider]] = {
     Tenis4uProvider.name: Tenis4uProvider,
+    TwojTenisProvider.name: TwojTenisProvider,
 }
 
 

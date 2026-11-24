@@ -1,0 +1,182 @@
+[
+  {
+    "clubId": "958662f0-0bd2-4fdc-8bef-bb2d69761adb",
+    "date": "2026-11-23",
+    "startTime": "16:00:00",
+    "endTime": "18:00:00",
+    "locationId": "63df7128-1e7d-449e-b81f-b14e0d865f56",
+    "id": "4b67f473-0271-476c-b9fb-03b23a1ffcde",
+    "price": null
+  },
+  {
+    "clubId": "958662f0-0bd2-4fdc-8bef-bb2d69761adb",
+    "date": "2026-11-23",
+    "startTime": "15:00:00",
+    "endTime": "16:00:00",
+    "locationId": "3931aabd-fcd3-417a-b809-20ef872cf465",
+    "id": "66435592-2d74-4959-9417-1d2b18727911",
+    "price": null
+  },
+  {
+    "clubId": "958662f0-0bd2-4fdc-8bef-bb2d69761adb",
+    "date": "2026-11-23",
+    "startTime": "13:30:00",
+    "endTime": "14:30:00",
+    "locationId": "771f1a0f-b818-4fcd-8939-31e8330f5822",
+    "id": "68ba7025-877f-4b5c-859d-1fb2a5cf12fc",
+    "price": null
+  },
+  {
+    "clubId": "958662f0-0bd2-4fdc-8bef-bb2d69761adb",
+    "date": "2026-11-23",
+    "startTime": "16:00:00",
+    "endTime": "18:00:00",
+    "locationId": "3931aabd-fcd3-417a-b809-20ef872cf465",
+    "id": "1d31a782-4d45-4871-a672-214f10f59bb1",
+    "price": null
+  },
+  {
+    "clubId": "958662f0-0bd2-4fdc-8bef-bb2d69761adb",
+    "date": "2026-11-23",
+    "startTime": "19:30:00",
+    "endTime": "21:00:00",
+    "locationId": "3931aabd-fcd3-417a-b809-20ef872cf465",
+    "id": "5ffa0a7b-9d28-4679-ad8a-242e4804c802",
+    "price": null
+  },
+  {
+    "clubId": "958662f0-0bd2-4fdc-8bef-bb2d69761adb",
+    "date": "2026-11-23",
+    "startTime": "18:00:00",
+    "endTime": "21:00:00",
+    "locationId": "771f1a0f-b818-4fcd-8939-31e8330f5822",
+    "id": "091eaaf2-e770-45af-a108-2aca01ccc495",
+    "price": null
+  },
+  {
+    "clubId": "958662f0-0bd2-4fdc-8bef-bb2d69761adb",
+    "date": "2026-11-23",
+    "startTime": "18:00:00",
+    "endTime": "19:30:00",
+    "locationId": "8b23bc3b-14c4-4855-ac8d-a5db4f0d6c4b",
+    "id": "1bd7dfea-0042-4ebc-9f3e-2baa4c4e81ed",
+    "price": null
+  },
+  {
+    "clubId": "958662f0-0bd2-4fdc-8bef-bb2d69761adb",
+    "date": "2026-11-23",
+    "startTime": "21:00:00",
+    "endTime": "23:00:00",
+    "locationId": "63df7128-1e7d-449e-b81f-b14e0d865f56",
+    "id": "d8b4dfc0-3b38-470f-a950-30fbb42ea373",
+    "price": null
+  },
+  {
+    "clubId": "958662f0-0bd2-4fdc-8bef-bb2d69761adb",
+    "date": "2026-11-23",
+    "startTime": "19:00:00",
+    "endTime": "21:00:00",
+    "locationId": "63df7128-1e7d-449e-b81f-b14e0d865f56",
+    "id": "636dfbf0-37a1-4f8d-803f-3c462f079ff5",
+    "price": null
+  },
+  {
+    "clubId": "958662f0-0bd2-4fdc-8bef-bb2d69761adb",
+    "date": "2026-11-23",
+    "startTime": "21:00:00",
+    "endTime": "22:00:00",
+    "locationId": "771f1a0f-b818-4fcd-8939-31e8330f5822",
+    "id": "70bd75ce-8e41-40e9-be25-5e4f75f475c5",
+    "price": null
+  },
+  {
+    "clubId": "958662f0-0bd2-4fdc-8bef-bb2d69761adb",
+    "date": "2026-11-23",
+    "startTime": "18:00:00",
+    "endTime": "19:00:00",
+    "locationId": "63df7128-1e7d-449e-b81f-b14e0d865f56",
+    "id": "9993f915-f177-40f1-b04b-6040336792e3",
+    "price": null
+  },
+  {
+    "clubId": "958662f0-0bd2-4fdc-8bef-bb2d69761adb",
+    "date": "2026-11-23",
+    "startTime": "22:00:00",
+    "endTime": "23:00:00",
+    "locationId": "771f1a0f-b818-4fcd-8939-31e8330f5822",
+    "id": "af0caaec-50e6-4705-ab0d-7585484f8b6e",
+    "price": null
+  },
+  {
+    "clubId": "958662f0-0bd2-4fdc-8bef-bb2d69761adb",
+    "date": "2026-11-23",
+    "startTime": "14:30:00",
+    "endTime": "15:30:00",
+    "locationId": "771f1a0f-b818-4fcd-8939-31e8330f5822",
+    "id": "27dadd15-487b-4132-aa6f-9029aba7b88a",
+    "price": null
+  },
+  {
+    "clubId": "958662f0-0bd2-4fdc-8bef-bb2d69761adb",
+    "date": "2026-11-23",
+    "startTime": "13:00:00",
+    "endTime": "14:00:00",
+    "locationId": "63df7128-1e7d-449e-b81f-b14e0d865f56",
+    "id": "f1441e9e-f7f1-4003-9beb-a40a68039b93",
+    "price": null
+  },
+  {
+    "clubId": "958662f0-0bd2-4fdc-8bef-bb2d69761adb",
+    "date": "2026-11-23",
+    "startTime": "21:00:00",
+    "endTime": "23:00:00",
+    "locationId": "8b23bc3b-14c4-4855-ac8d-a5db4f0d6c4b",
+    "id": "aac50ef9-dbc4-48f2-97fd-b87879e1b33d",
+    "price": null
+  },
+  {
+    "clubId": "958662f0-0bd2-4fdc-8bef-bb2d69761adb",
+    "date": "2026-11-23",
+    "startTime": "16:00:00",
+    "endTime": "17:00:00",
+    "locationId": "8b23bc3b-14c4-4855-ac8d-a5db4f0d6c4b",
+    "id": "d09b1b6a-1545-41d2-b1fc-bd7df1b1f4e3",
+    "price": null
+  },
+  {
+    "clubId": "958662f0-0bd2-4fdc-8bef-bb2d69761adb",
+    "date": "2026-11-23",
+    "startTime": "18:00:00",
+    "endTime": "19:30:00",
+    "locationId": "3931aabd-fcd3-417a-b809-20ef872cf465",
+    "id": "031bb262-33d4-4fea-b912-c0874112c900",
+    "price": null
+  },
+  {
+    "clubId": "958662f0-0bd2-4fdc-8bef-bb2d69761adb",
+    "date": "2026-11-23",
+    "startTime": "19:30:00",
+    "endTime": "21:00:00",
+    "locationId": "8b23bc3b-14c4-4855-ac8d-a5db4f0d6c4b",
+    "id": "57e1f8a1-6772-4779-8e93-c79347f1054a",
+    "price": null
+  },
+  {
+    "clubId": "958662f0-0bd2-4fdc-8bef-bb2d69761adb",
+    "date": "2026-11-23",
+    "startTime": "07:00:00",
+    "endTime": "08:00:00",
+    "locationId": "771f1a0f-b818-4fcd-8939-31e8330f5822",
+    "id": "ed05f25d-5d1a-4d76-8e81-d679f4fac79e",
+    "price": null
+  },
+  {
+    "clubId": "958662f0-0bd2-4fdc-8bef-bb2d69761adb",
+    "date": "2026-11-23",
+    "startTime": "15:00:00",
+    "endTime": "16:00:00",
+    "locationId": "8b23bc3b-14c4-4855-ac8d-a5db4f0d6c4b",
+    "id": "fd767d56-30dc-4c21-ab4b-df4180073bb1",
+    "price": null
+  }
+]

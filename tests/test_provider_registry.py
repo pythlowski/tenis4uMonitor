@@ -19,3 +19,9 @@ def test_unknown_provider_raises():
 
 def test_registry_keys_match_provider_names():
     assert all(cls.name == name for name, cls in PROVIDERS.items())
+
+
+def test_twojtenis_is_registered():
+    from providers.twojtenis import TwojTenisProvider
+
+    assert isinstance(create_provider("twojtenis", FakeHttp()), TwojTenisProvider)

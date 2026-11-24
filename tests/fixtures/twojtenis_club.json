@@ -1,0 +1,554 @@
+{
+  "id": "958662f0-0bd2-4fdc-8bef-bb2d69761adb",
+  "name": "Błonia Sport",
+  "openHours": {
+    "monday": {
+      "from": "07:00:00",
+      "to": "23:00:00"
+    },
+    "tuesday": {
+      "from": "07:00:00",
+      "to": "23:00:00"
+    },
+    "wednesday": {
+      "from": "07:00:00",
+      "to": "23:00:00"
+    },
+    "thursday": {
+      "from": "07:00:00",
+      "to": "23:00:00"
+    },
+    "friday": {
+      "from": "07:00:00",
+      "to": "23:00:00"
+    },
+    "saturday": {
+      "from": "07:00:00",
+      "to": "23:00:00"
+    },
+    "sunday": {
+      "from": "07:00:00",
+      "to": "23:00:00"
+    }
+  },
+  "locations": [
+    {
+      "id": "141eaa68-b92b-4034-9694-1c5640ef1beb",
+      "name": "Tenis 4",
+      "type": 0,
+      "openHours": {
+        "monday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "tuesday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "wednesday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "thursday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "friday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "saturday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "sunday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        }
+      },
+      "isEnabled": true,
+      "visibility": 0
+    },
+    {
+      "id": "3931aabd-fcd3-417a-b809-20ef872cf465",
+      "name": "Badminton 2",
+      "type": 1,
+      "openHours": {
+        "monday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "tuesday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "wednesday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "thursday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "friday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "saturday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "sunday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        }
+      },
+      "isEnabled": true,
+      "visibility": 0
+    },
+    {
+      "id": "771f1a0f-b818-4fcd-8939-31e8330f5822",
+      "name": "Badminton 4",
+      "type": 1,
+      "openHours": {
+        "monday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "tuesday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "wednesday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "thursday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "friday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "saturday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "sunday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        }
+      },
+      "isEnabled": true,
+      "visibility": 0
+    },
+    {
+      "id": "118fd869-4748-49fc-be79-33070c070d7d",
+      "name": "Tenis 5",
+      "type": 0,
+      "openHours": {
+        "monday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "tuesday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "wednesday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "thursday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "friday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "saturday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "sunday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        }
+      },
+      "isEnabled": true,
+      "visibility": 0
+    },
+    {
+      "id": "87e90409-1633-4aa0-bf1e-36cd9ffb142f",
+      "name": "Padel 3",
+      "type": 8,
+      "openHours": {
+        "monday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "tuesday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "wednesday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "thursday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "friday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "saturday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "sunday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        }
+      },
+      "isEnabled": true,
+      "visibility": 0
+    },
+    {
+      "id": "f629f2d9-01fe-4a61-b736-493203ed5bfe",
+      "name": "Tenis 1",
+      "type": 0,
+      "openHours": {
+        "monday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "tuesday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "wednesday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "thursday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "friday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "saturday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "sunday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        }
+      },
+      "isEnabled": true,
+      "visibility": 0
+    },
+    {
+      "id": "10813d74-a6d7-43f5-9b96-5116d2907021",
+      "name": "Tenis 2",
+      "type": 0,
+      "openHours": {
+        "monday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "tuesday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "wednesday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "thursday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "friday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "saturday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "sunday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        }
+      },
+      "isEnabled": true,
+      "visibility": 0
+    },
+    {
+      "id": "1ca31b9b-e029-47fe-a2c8-568fbadc83c8",
+      "name": "Padel 1",
+      "type": 8,
+      "openHours": {
+        "monday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "tuesday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "wednesday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "thursday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "friday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "saturday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "sunday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        }
+      },
+      "isEnabled": true,
+      "visibility": 0
+    },
+    {
+      "id": "8b23bc3b-14c4-4855-ac8d-a5db4f0d6c4b",
+      "name": "Badminton 1",
+      "type": 1,
+      "openHours": {
+        "monday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "tuesday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "wednesday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "thursday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "friday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "saturday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "sunday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        }
+      },
+      "isEnabled": true,
+      "visibility": 0
+    },
+    {
+      "id": "63df7128-1e7d-449e-b81f-b14e0d865f56",
+      "name": "Badminton 3",
+      "type": 1,
+      "openHours": {
+        "monday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "tuesday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "wednesday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "thursday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "friday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "saturday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "sunday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        }
+      },
+      "isEnabled": true,
+      "visibility": 0
+    },
+    {
+      "id": "d32be548-efa4-4c19-a84e-cd3b1d61c859",
+      "name": "Padel 2",
+      "type": 8,
+      "openHours": {
+        "monday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "tuesday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "wednesday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "thursday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "friday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "saturday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "sunday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        }
+      },
+      "isEnabled": true,
+      "visibility": 0
+    },
+    {
+      "id": "8537209c-7d6f-4ba3-870c-d2334596eb05",
+      "name": "Padel 4",
+      "type": 8,
+      "openHours": {
+        "monday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "tuesday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "wednesday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "thursday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "friday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "saturday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "sunday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        }
+      },
+      "isEnabled": true,
+      "visibility": 0
+    },
+    {
+      "id": "9a0d7b06-2fe2-415d-b32a-d5c9bb6c0958",
+      "name": "Tenis 3",
+      "type": 0,
+      "openHours": {
+        "monday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "tuesday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "wednesday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "thursday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "friday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "saturday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        },
+        "sunday": {
+          "from": "07:00:00",
+          "to": "23:00:00"
+        }
+      },
+      "isEnabled": true,
+      "visibility": 0
+    },
+    {
+      "id": "ef363b54-9569-49f0-8376-f2d140bb950d",
+      "name": "Boisko 90m x 45m",
+      "type": 5,
+      "openHours": {
+        "monday": {
+          "from": "07:00:00",
+          "to": "22:00:00"
+        },
+        "tuesday": {
+          "from": "07:00:00",
+          "to": "22:00:00"
+        },
+        "wednesday": {
+          "from": "07:00:00",
+          "to": "22:00:00"
+        },
+        "thursday": {
+          "from": "07:00:00",
+          "to": "22:00:00"
+        },
+        "friday": {
+          "from": "07:00:00",
+          "to": "22:00:00"
+        },
+        "saturday": {
+          "from": "07:00:00",
+          "to": "22:00:00"
+        },
+        "sunday": {
+          "from": "07:00:00",
+          "to": "22:00:00"
+        }
+      },
+      "isEnabled": true,
+      "visibility": 0
+    }
+  ]
+}
