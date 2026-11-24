@@ -18,7 +18,7 @@ MAX_BUTTON_ROWS = 5
 
 REPORT_COLOR = 5793266
 NEW_WINDOWS_COLOR = 15906135
-FOOTER = "Court Monitor"
+FOOTER = "Monitor"
 GLOBAL_TITLE = "Free courts"
 NEW_WINDOWS_TITLE = "New free windows!"
 
@@ -141,7 +141,7 @@ class MessageFormatter:
         return f"No free windows for: {weekdays_label(self.weekdays)}"
 
     def facility_embed(self, result: FacilityResult) -> dict:
-        book = [f"[Book here]({result.booking_url})"] if result.booking_url else []
+        book = [f"[Book here!]({result.booking_url})"] if result.booking_url else []
         head = [self.summary(len(result.windows)), ""]
         body_limit = MAX_DESCRIPTION - len("\n".join([*head, *book])) - 2
         body = join_limited(day_lines(entries(result.windows)), body_limit)
