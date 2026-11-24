@@ -44,6 +44,18 @@ def natural_key(text: str) -> list:
     return [int(part) if part.isdigit() else part.lower() for part in re.split(r"(\d+)", text)]
 
 
+def short_court_name(name: str) -> str:
+    """Initials of the words plus the number in the name: 'Badminton 1' -> 'B1', 'Padel Hala 1' -> 'PH1'.
+
+    Names without a number are kept as they are.
+    """
+    number = re.search(r"\d+", name)
+    if not number:
+        return name
+    initials = "".join(word[0].upper() for word in name.split() if not word[0].isdigit())
+    return f"{initials}{number.group()}"
+
+
 # (window, facility label shown after the hours or "" to omit it, facility position for sorting)
 Entry = tuple[FreeWindow, str, int]
 
@@ -62,14 +74,16 @@ def day_lines(items: list[Entry]) -> list[str]:
     """
     **Monday 23.11**
     - 16:00–17:00 · [Błonia Sport](url) (b1, b2), [Fame Sport Club](url) (b4)    with facilities (global channel)
-    - 16:00–17:00 · b1, b2                                                       without them
+    - 16:00–17:00 · badminton 1, badminton 2                                     without them
+
+    Court names are abbreviated only next to a facility, to keep the merged list short.
 
     One line per distinct time range; days in date order, ranges by time, then facilities, then courts.
     """
     ranges: dict[tuple[datetime, datetime], dict[tuple[int, str], list[str]]] = {}
     for window, facility, order in items:
         courts = ranges.setdefault((window.start, window.end), {}).setdefault((order, facility), [])
-        courts.append(window.court_name.lower())
+        courts.append((short_court_name(window.court_name) if facility else window.court_name).lower())
 
     lines: list[str] = []
     current_day: date | None = None
