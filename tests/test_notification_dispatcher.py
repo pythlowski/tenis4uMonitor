@@ -66,7 +66,8 @@ def test_global_includes_unchanged_facilities_when_one_changed():
     d, notifier = dispatcher("global")
     d.dispatch([result("a", changed=False), result("b", changed=True)])
     [(_, payload)] = notifier.sent
-    assert [e["title"] for e in payload["embeds"]] == ["A", "B"]
+    [embed] = payload["embeds"]
+    assert "__**A**__" in embed["description"] and "__**B**__" in embed["description"]
 
 
 def test_logs_destination_and_no_change(caplog):
