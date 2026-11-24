@@ -89,8 +89,13 @@ class MonitorService:
             self.providers[name] = create_provider(name, self._http_for(provider_class(name).USES_PROXY))
         return self.providers[name]
 
+    def prepare_providers(self) -> None:
+        """Create the configured providers up front, so the proxy pool starts collecting at app start."""
+        for name in dict.fromkeys(facility.provider for facility in self.settings.facilities):
+            self._provider(name)
+
     def _http_for(self, uses_proxy: bool) -> HttpClient:
-        """Proxy pool only for providers that need it; it is started on first use."""
+        """Proxy pool only for providers that need it; created together with the first such provider."""
         if self._http is not None:
             return self._http
         if not uses_proxy:
@@ -113,6 +118,7 @@ class MonitorService:
         return interval - remainder if remainder != 0 else interval
 
     def start(self) -> None:
+        self.prepare_providers()
         interval_minutes = self.settings.fetch_interval_minutes
         sleep_for = self._seconds_until_next_slot()
         self.logger.info(
