@@ -2,7 +2,7 @@ from datetime import datetime, time
 
 import pytest
 
-from availability import AvailabilityComputer, AvailabilityFilters, WindowGroup, group_windows, merge_intervals
+from availability import AvailabilityComputer, AvailabilityFilters, merge_intervals
 from models.court_availability import CourtAvailability
 from models.free_window import FreeWindow
 
@@ -92,18 +92,14 @@ def test_result_is_sorted_by_start_end_court():
     assert [(w.start.day, w.court_id) for w in compute(courts)] == [(23, "a"), (23, "b"), (24, "b")]
 
 
-class TestGroupWindows:
-    def test_counts_courts_per_identical_range(self):
-        windows = [
-            FreeWindow(dt(MONDAY, 16, 30), dt(MONDAY, 19), "1"),
-            FreeWindow(dt(MONDAY, 16, 30), dt(MONDAY, 19), "2"),
-            FreeWindow(dt(MONDAY, 16, 30), dt(MONDAY, 19), "3"),
-            FreeWindow(dt(MONDAY, 17, 30), dt(MONDAY, 19), "4"),
-        ]
-        assert group_windows(windows) == [
-            WindowGroup(dt(MONDAY, 16, 30), dt(MONDAY, 19), 3),
-            WindowGroup(dt(MONDAY, 17, 30), dt(MONDAY, 19), 1),
-        ]
+def test_windows_carry_the_court_name():
+    [window] = compute([court("1", dt(MONDAY, 17), dt(MONDAY, 18))])
+    assert window.court_name == "Court 1"
+    assert window.court_label == "Court 1"
 
-    def test_empty(self):
-        assert group_windows([]) == []
+
+def test_court_name_is_display_only():
+    named = FreeWindow(dt(MONDAY, 17), dt(MONDAY, 18), "1", "Court 1")
+    unnamed = FreeWindow(dt(MONDAY, 17), dt(MONDAY, 18), "1")
+    assert named == unnamed and hash(named) == hash(unnamed)
+    assert unnamed.court_label == "1"

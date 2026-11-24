@@ -6,29 +6,36 @@ import pytest
 from models.facility_result import FacilityResult
 from models.free_window import FreeWindow
 from notifications.message_formatter import (
+    FOOTER,
+    GLOBAL_TITLE,
+    MAX_DESCRIPTION,
     MAX_EMBED_CHARS_PER_MESSAGE,
+    NEW_WINDOWS_TITLE,
     MessageFormatter,
+    court_lines,
     embed_size,
     join_limited,
+    split_lines,
     weekdays_label,
 )
 
 URL = "https://app.tenis4u.pl/court/104"
+URL_B = "https://app.twojtenis.pl/x"
 NOW = "2026-11-23T12:00:00+01:00"
 ALL_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
 
-def w(day, start, end, court):
+def w(day, start, end, court, name=None):
     sh, sm = start
     eh, em = end
-    return FreeWindow(datetime(2026, 11, day, sh, sm), datetime(2026, 11, day, eh, em), court)
+    return FreeWindow(datetime(2026, 11, day, sh, sm), datetime(2026, 11, day, eh, em), court, name or court)
 
 
-MON_A = w(23, (16, 30), (19, 0), "Badminton 1")
-MON_B = w(23, (16, 30), (19, 0), "Badminton 2")
-MON_C = w(23, (16, 30), (19, 0), "Badminton 3")
-MON_D = w(23, (17, 30), (19, 0), "Badminton 4")
-TUE_A = w(24, (18, 0), (20, 0), "Badminton 1")
+MON_1 = w(23, (16, 30), (19, 0), "c1", "Court 1")
+MON_1_LATE = w(23, (20, 0), (22, 30), "c1", "Court 1")
+MON_2 = w(23, (17, 30), (19, 0), "c2", "Court 2")
+MON_10 = w(23, (18, 0), (19, 0), "c10", "Court 10")
+TUE_1 = w(24, (18, 0), (20, 0), "c1", "Court 1")
 
 
 def result(windows=(), new=(), changed=True, baseline=False, name="Hala XYZ", key="hala", url=URL):
@@ -47,37 +54,55 @@ def formatter():
     return MessageFormatter(weekdays=ALL_DAYS, now=lambda: NOW)
 
 
-class TestFacilityEmbed:
-    def test_time_ranges_with_court_counts(self, formatter):
-        embed = formatter.facility_embed(result([MON_A, MON_B, MON_C, MON_D]))
-        assert embed["fields"] == [
-            {"name": "Monday 23.11", "value": "- 16:30–19:00 · 3 courts\n- 17:30–19:00 · 1 court", "inline": False}
+class TestCourtLines:
+    def test_groups_by_court_then_day_with_ranges(self):
+        assert court_lines([TUE_1, MON_2, MON_1_LATE, MON_1]) == [
+            "**Court 1**",
+            "- Monday 23.11 · 16:30–19:00, 20:00–22:30",
+            "- Tuesday 24.11 · 18:00–20:00",
+            "**Court 2**",
+            "- Monday 23.11 · 17:30–19:00",
         ]
 
-    def test_no_court_names_anywhere(self, formatter):
-        payload = formatter.facility_payload(result([MON_A, TUE_A], new=[TUE_A]))
-        assert "Badminton 1" not in str(payload)
+    def test_courts_in_natural_order(self):
+        lines = court_lines([MON_10, MON_2, MON_1])
+        assert [line for line in lines if line.startswith("**")] == ["**Court 1**", "**Court 2**", "**Court 10**"]
 
-    def test_groups_fields_by_day_in_order(self, formatter):
-        embed = formatter.facility_embed(result([TUE_A, MON_A]))
-        assert [f["name"] for f in embed["fields"]] == ["Monday 23.11", "Tuesday 24.11"]
+    def test_falls_back_to_court_id_without_name(self):
+        unnamed = FreeWindow(datetime(2026, 11, 23, 17), datetime(2026, 11, 23, 18), "Badminton 3")
+        assert court_lines([unnamed])[0] == "**Badminton 3**"
 
-    def test_title_link_and_description_use_booking_url(self, formatter):
-        embed = formatter.facility_embed(result([MON_A]))
+
+class TestFacilityEmbed:
+    def test_lists_courts_then_booking_link(self, formatter):
+        embed = formatter.facility_embed(result([MON_1, MON_2]))
+        lines = embed["description"].split("\n")
+        assert lines[0] == "Found 2 free windows for: every day"
+        assert lines[2:6] == ["**Court 1**", "- Monday 23.11 · 16:30–19:00", "**Court 2**", "- Monday 23.11 · 17:30–19:00"]
+        assert lines[-1].startswith("[Book") and lines[-1].endswith(f"]({URL})")
+
+    def test_title_url_and_footer(self, formatter):
+        embed = formatter.facility_embed(result([MON_1]))
         assert embed["title"] == "Hala XYZ"
         assert embed["url"] == URL
-        assert embed["description"] == f"Found 1 free window for: every day\n[Book here]({URL})"
-        assert embed["footer"] == {"text": "Court Monitor"}
+        assert embed["footer"] == {"text": FOOTER}
 
-    def test_description_without_url(self, formatter):
-        embed = formatter.facility_embed(result([MON_A, MON_B], url=""))
-        assert embed["description"] == "Found 2 free windows for: every day"
+    def test_without_url(self, formatter):
+        embed = formatter.facility_embed(result([MON_1], url=""))
+        assert "Book" not in embed["description"]
         assert "url" not in embed
 
     def test_empty_state(self, formatter):
         embed = formatter.facility_embed(result([]))
         assert embed["description"].startswith("No free windows")
-        assert embed["fields"] == []
+        assert "**" not in embed["description"]
+
+    def test_long_list_is_truncated_but_keeps_booking_link(self, formatter):
+        many = [w(d, (16, m), (22, 0), f"c{c}", f"Court {c}") for d in range(23, 30) for c in range(40) for m in (0,)]
+        embed = formatter.facility_embed(result(many))
+        assert len(embed["description"]) <= MAX_DESCRIPTION
+        assert "more" in embed["description"]
+        assert embed["description"].endswith(f"]({URL})")
 
     def test_weekday_label(self):
         assert weekdays_label(["Tuesday", "Monday"]) == "Mon, Tue"
@@ -85,74 +110,110 @@ class TestFacilityEmbed:
 
 
 class TestFacilityPayload:
-    def test_ping_and_new_windows_embed(self, formatter):
-        payload = formatter.facility_payload(result([MON_A, MON_B], new=[MON_B]))
+    def test_new_windows_show_court_and_full_range(self, formatter):
+        payload = formatter.facility_payload(result([MON_1, MON_2], new=[MON_2]))
         assert payload["content"] == "@everyone"
-        assert len(payload["embeds"]) == 2
-        assert payload["embeds"][1]["description"] == "- Monday 23.11 16:30–19:00 · 1 court"
+        assert payload["embeds"][1]["title"] == NEW_WINDOWS_TITLE
+        assert payload["embeds"][1]["description"] == "- Court 2 · Monday 23.11 17:30–19:00"
         assert payload["allowed_mentions"] == {"parse": ["everyone"]}
 
     def test_no_ping_without_new_windows(self, formatter):
-        payload = formatter.facility_payload(result([MON_A]))
+        payload = formatter.facility_payload(result([MON_1]))
         assert payload["content"] == ""
         assert len(payload["embeds"]) == 1
 
     def test_baseline_never_pings(self, formatter):
-        payload = formatter.facility_payload(result([MON_A], new=[MON_A], baseline=True))
+        payload = formatter.facility_payload(result([MON_1], new=[MON_1], baseline=True))
         assert payload["content"] == ""
         assert len(payload["embeds"]) == 1
 
     def test_button_uses_booking_url(self, formatter):
-        payload = formatter.facility_payload(result([MON_A]))
+        payload = formatter.facility_payload(result([MON_1]))
         button = payload["components"][0]["components"][0]
         assert button["url"] == URL and button["style"] == 5
 
     def test_no_button_without_url(self, formatter):
-        assert formatter.facility_payload(result([MON_A], url=""))["components"] == []
+        assert formatter.facility_payload(result([MON_1], url=""))["components"] == []
 
 
 class TestGlobalPayloads:
-    def test_one_embed_per_facility_and_ping_with_facility_name(self, formatter):
+    def test_merges_all_facilities_into_one_embed_with_links_below(self, formatter):
         results = [
-            result([MON_A], new=[MON_A], name="Hala XYZ", key="a"),
-            result([TUE_A], changed=False, name="Blonia", key="b", url="https://app.twojtenis.pl/x"),
+            result([MON_1], name="Hala XYZ", key="a"),
+            result([TUE_1], changed=False, name="Blonia", key="b", url=URL_B),
         ]
         [payload] = formatter.global_payloads(results)
-        assert payload["content"] == "@everyone"
-        titles = [e["title"] for e in payload["embeds"]]
-        assert titles == ["New free windows!", "Hala XYZ", "Blonia"]
-        assert payload["embeds"][0]["description"] == "- **Hala XYZ** · Monday 23.11 16:30–19:00 · 1 court"
+        [embed] = payload["embeds"]
+        assert embed["title"] == GLOBAL_TITLE
+        assert embed["description"].split("\n") == [
+            "Found 2 free windows for: every day",
+            "",
+            "__**Hala XYZ**__",
+            "**Court 1**",
+            "- Monday 23.11 · 16:30–19:00",
+            "",
+            "__**Blonia**__",
+            "**Court 1**",
+            "- Tuesday 24.11 · 18:00–20:00",
+            "",
+            "**Book:**",
+            f"- [Hala XYZ]({URL})",
+            f"- [Blonia]({URL_B})",
+        ]
         labels = [b["label"] for row in payload["components"] for b in row["components"]]
         assert labels == ["Hala XYZ", "Blonia"]
 
+    def test_facility_without_windows_is_listed(self, formatter):
+        [payload] = formatter.global_payloads([result([], name="Empty")])
+        assert "__**Empty**__\n_No free windows_" in payload["embeds"][0]["description"]
+
+    def test_new_windows_show_facility_court_and_range(self, formatter):
+        results = [
+            result([MON_1], new=[MON_1], name="Hala XYZ", key="a"),
+            result([TUE_1], new=[TUE_1], name="Blonia", key="b", url=URL_B),
+        ]
+        [payload] = formatter.global_payloads(results)
+        assert payload["content"] == "@everyone"
+        assert [e.get("title") for e in payload["embeds"]] == [NEW_WINDOWS_TITLE, GLOBAL_TITLE]
+        assert payload["embeds"][0]["description"] == (
+            "- **Hala XYZ** · Court 1 · Monday 23.11 16:30–19:00\n- **Blonia** · Court 1 · Tuesday 24.11 18:00–20:00"
+        )
+
     def test_no_ping_when_only_baselines(self, formatter):
-        [payload] = formatter.global_payloads([result([MON_A], new=[MON_A], baseline=True)])
+        [payload] = formatter.global_payloads([result([MON_1], new=[MON_1], baseline=True)])
         assert payload["content"] == ""
-        assert [e["title"] for e in payload["embeds"]] == ["Hala XYZ"]
+        assert [e["title"] for e in payload["embeds"]] == [GLOBAL_TITLE]
 
-    def test_splits_above_ten_embeds(self, formatter):
-        results = [result([MON_A], name=f"F{i}", key=f"f{i}") for i in range(12)]
+    def test_splits_long_lists_within_discord_limits(self, formatter):
+        many = [w(d, (h, 0), (h + 1, 0), f"c{c}", f"Court {c}") for d in range(23, 30) for h in (16, 18, 20) for c in range(12)]
+        results = [result(many, new=many, name=f"Facility {i}", key=f"f{i}") for i in range(4)]
         payloads = formatter.global_payloads(results)
-        assert [len(p["embeds"]) for p in payloads] == [10, 2]
+        assert len(payloads) > 1
+        assert [p["content"] for p in payloads] == ["@everyone"] + [""] * (len(payloads) - 1)
         for p in payloads:
-            buttons = [b for row in p["components"] for b in row["components"]]
-            assert len(buttons) == len(p["embeds"])
-            assert all(len(row["components"]) <= 5 for row in p["components"])
-
-    def test_ping_only_on_first_payload(self, formatter):
-        results = [result([MON_A], new=[MON_A], name=f"F{i}", key=f"f{i}") for i in range(12)]
-        payloads = formatter.global_payloads(results)
-        assert [p["content"] for p in payloads] == ["@everyone", ""]
-
-    def test_splits_at_6000_characters(self, formatter):
-        # distinct start minutes per court -> nothing groups, so every field hits its 1024-char cap
-        many = [w(d, (h, c), (h + 1, 0), f"c{c}") for d in range(23, 30) for h in range(16, 22) for c in range(20)]
-        results = [result(many, name=f"Facility {i}", key=f"f{i}") for i in range(3)]
-        payloads = formatter.global_payloads(results)
-        assert len(payloads) == 3
-        for p in payloads:
+            assert len(p["embeds"]) <= 10
             assert sum(embed_size(e) for e in p["embeds"]) <= MAX_EMBED_CHARS_PER_MESSAGE
-            assert "more day(s) not shown" in p["embeds"][0]["description"]
+            assert all(len(e["description"]) <= MAX_DESCRIPTION for e in p["embeds"])
+        # buttons and booking links come last, after every slot
+        assert all(p["components"] == [] for p in payloads[:-1])
+        assert payloads[-1]["components"]
+        assert payloads[-1]["embeds"][-1]["description"].endswith(f"- [Facility 3]({URL})")
+        # nothing from the merged list is lost when splitting
+        text = "\n".join(e["description"] for p in payloads for e in p["embeds"] if e.get("title") != NEW_WINDOWS_TITLE)
+        assert text.count("__**Facility") == 4
+
+    def test_at_most_25_buttons(self, formatter):
+        results = [result([], name=f"F{i}", key=f"f{i}") for i in range(30)]
+        payloads = formatter.global_payloads(results)
+        rows = payloads[-1]["components"]
+        assert len(rows) == 5 and all(len(row["components"]) == 5 for row in rows)
+
+
+def test_split_lines_never_exceeds_limit():
+    lines = [f"line {i}" for i in range(100)]
+    texts = split_lines(lines, 50)
+    assert all(len(t) <= 50 for t in texts)
+    assert "\n".join(texts).split("\n") == lines
 
 
 def test_join_limited_truncates_with_count():

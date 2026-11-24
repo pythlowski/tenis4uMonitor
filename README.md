@@ -17,7 +17,7 @@ Every `fetch_interval_minutes` (aligned to even boundaries, e.g. XX:00/20/40) th
 2. clips them to the global `begin_time`–`end_time`, keeps only the selected `weekdays`, merges touching/overlapping intervals **per court** and drops windows shorter than `min_duration_minutes`,
 3. compares them with the facility's previous snapshot (`snapshots/{key}.json`).
 
-If anything changed, a Discord message lists the free windows per day, e.g. `16:30–19:00 · 3 courts`. `@everyone` is mentioned only for **new** windows — a window that grew, appeared, or a court that freed up. Shrinking windows don't ping. The very first run for a facility is a silent baseline.
+If anything changed, a Discord message lists the free windows grouped by facility and court, e.g. `Monday 23.11 · 16:30–19:00, 20:00–22:30` under **Court 1**, followed by the booking links. In `global` mode all facilities are merged into one message (split only when Discord's size limits require it). New windows are listed separately with their court, full time range and, in the global channel, the facility name. `@everyone` is mentioned only for **new** windows — a window that grew, appeared, or a court that freed up. Shrinking windows don't ping. The very first run for a facility is a silent baseline.
 
 ## Requirements
 
