@@ -1,11 +1,21 @@
-facility_id = 104
-court_type = "badminton"
-begin_time = "16:30"
-end_time = "22:30"
-weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Sunday"]
-
-[api]
-url = "https://api.tenis4u.pl"
-headers = { "x-tenis-user-agent" = "tenis4u-web-frontoffice/3.6.0" }
 fetch_interval_minutes = 20
 max_proxies_ready = 5
+days_ahead = 7                     # look-ahead horizon in days (1-14)
+
+# Global filters, applied to every facility
+begin_time = "16:30"
+end_time = "22:30"
+min_duration_minutes = 60
+weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+
+[discord]
+mode = "global"                    # "global" | "per_facility" | "both"
+# Webhook URLs are secrets -> .env only (see .env.example)
+
+[[facilities]]
+key = "tenis4u_104"                # unique; lowercase/digits/single underscores. Used for the snapshot file and webhook env var
+name = "tenis4u 104"               # shown in Discord
+provider = "tenis4u"
+facility_id = "104"
+court_type = "badminton"           # tennis | badminton | padel
+# booking_url = "https://..."      # optional override of the provider's booking link

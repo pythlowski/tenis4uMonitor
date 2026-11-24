@@ -4,17 +4,21 @@ from unittest.mock import patch
 import pytest
 
 from monitor_service import MonitorService
-from settings import Settings
 
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
+@pytest.fixture(autouse=True)
+def _settings_factory(make_settings):
+    global _build_settings
+    _build_settings = make_settings
+
+
 def _make_service(interval_minutes: int = 20) -> MonitorService:
-    """Return a MonitorService with a minimal faked Settings object."""
-    settings = Settings()
-    settings.api.fetch_interval_minutes = interval_minutes
+    """Return a MonitorService with an isolated Settings object."""
+    settings = _build_settings(fetch_interval_minutes=interval_minutes)
     return MonitorService(settings)
 
 
