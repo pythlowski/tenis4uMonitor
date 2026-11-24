@@ -1,46 +1,93 @@
-import time
 import datetime
-from urllib.error import HTTPError, URLError
+import time
+from typing import Callable
 
-from discord_notifier import DiscordNotifier
-from message_formatter import MessageFormatter
-from settings import Settings
-from data_service import DataService
+from availability import AvailabilityComputer
+from http_client import HttpClient
+from logger import Logger
+from models.facility_result import FacilityResult
+from models.facility_snapshot import FacilitySnapshot
+from notifications.discord_notifier import DiscordNotifier
+from notifications.message_formatter import MessageFormatter
+from notifications.notification_dispatcher import NotificationDispatcher
+from providers import create_provider
+from providers.base import SlotProvider
+from proxy_background_service import ProxyBackgroundService
+from settings import FacilityConfig, Settings
 from snapshots_comparator import SnapshotsComparator
 from snapshots_repository import SnapshotRepository
-from logger import Logger
-from providers.tenis4u import Tenis4uProvider
-from models.snapshot import Snapshot
+
 
 class MonitorService:
 
-    def __init__(self, settings: Settings):
+    def __init__(
+        self,
+        settings: Settings,
+        http: HttpClient | None = None,
+        providers: dict[str, SlotProvider] | None = None,
+        repository: SnapshotRepository | None = None,
+        comparator: SnapshotsComparator | None = None,
+        dispatcher: NotificationDispatcher | None = None,
+        today: Callable[[], datetime.date] = datetime.date.today,
+    ):
         self.logger = Logger(name="MONITOR")
         self.settings = settings
-        self.notifier = DiscordNotifier(self.settings.discord.global_webhook_url.get_secret_value())
-        self.data_service = DataService(self.settings)
-        self.snapshots_repository = SnapshotRepository()
-        self.snapshots_comparator = SnapshotsComparator()
+        self._http = http
+        self.providers: dict[str, SlotProvider] = dict(providers or {})
+        self.repository = repository or SnapshotRepository()
+        self.comparator = comparator or SnapshotsComparator()
+        self.computer = AvailabilityComputer(settings.filters)
+        self.dispatcher = dispatcher or NotificationDispatcher(
+            settings.discord, DiscordNotifier(), MessageFormatter(settings.weekdays)
+        )
+        self._today = today
 
-    def run_once(self) -> None:
-        free_slots = self.data_service.get_free_slots()
+    def run_once(self) -> list[FacilityResult]:
+        date_from = self._today()
+        date_to = date_from + datetime.timedelta(days=self.settings.days_ahead - 1)
 
-        self.logger.info(f"Found {len(free_slots)} free slots.")
+        results: list[FacilityResult] = []
+        for facility in self.settings.facilities:
+            try:
+                results.append(self._process(facility, date_from, date_to))
+            except Exception as err:
+                # Skip this facility; its previous snapshot stays untouched.
+                self.logger.exception(f"[{facility.key}] Failed to process facility: {err}")
 
-        old_snapshot = self.snapshots_repository.get_latest()
-        new_snapshot = Snapshot(weekdays=self.settings.weekdays, free_slots=free_slots)
-        self.snapshots_repository.save(snapshot=new_snapshot)
+        if results:
+            self.dispatcher.dispatch(results)
+        return results
 
-        snapshots_diff = self.snapshots_comparator.get_diff(old=old_snapshot, new=new_snapshot)
+    def _process(self, facility: FacilityConfig, date_from: datetime.date, date_to: datetime.date) -> FacilityResult:
+        provider = self._provider(facility.provider)
+        courts = provider.fetch_availability(facility, date_from, date_to)
+        windows = self.computer.compute(courts)
+        self.logger.info(f"[{facility.key}] Found {len(windows)} free windows.")
 
-        if not snapshots_diff.are_equal:
-            self.notifier.send_alert(
-                payload=MessageFormatter.get_payload(
-                    snapshot=new_snapshot,
-                    new_slots=snapshots_diff.new_slots, 
-                    url=Tenis4uProvider.WEB_BASE_URL + f"/court/{self.settings.facilities[0].facility_id}"
-                )
-            )
+        new_snapshot = FacilitySnapshot(
+            facility_key=facility.key,
+            taken_at=datetime.datetime.now().astimezone(),
+            windows=windows,
+        )
+        old_snapshot = self.repository.get(facility.key)
+        diff = self.comparator.get_diff(old=old_snapshot, new=new_snapshot)
+        self.repository.save(new_snapshot)
+
+        return FacilityResult(
+            facility=facility,
+            booking_url=facility.booking_url or provider.booking_url(facility),
+            windows=windows,
+            new_windows=diff.new_windows,
+            changed=diff.changed,
+            is_baseline=diff.is_baseline,
+        )
+
+    def _provider(self, name: str) -> SlotProvider:
+        if name not in self.providers:
+            if self._http is None:
+                self._http = HttpClient(ProxyBackgroundService(max_proxies_ready=self.settings.max_proxies_ready))
+            self.providers[name] = create_provider(name, self._http)
+        return self.providers[name]
 
     def _seconds_until_next_slot(self) -> float:
         """Return the number of seconds to sleep until the next even interval boundary.
@@ -68,8 +115,6 @@ class MonitorService:
             try:
                 self.logger.info("Monitor run started...")
                 self.run_once()
-            except (URLError, HTTPError) as err:
-                self.logger.error("Network or HTTP error occurred: %s", err)
             except Exception as err:
                 self.logger.exception("Unexpected error during execution: %s", err)
 
@@ -78,4 +123,3 @@ class MonitorService:
             sleep_for = max(0, interval_minutes * 60 - elapsed)
             self.logger.info(f"Elapsed time: {elapsed:.2f}s. Sleeping for {sleep_for:.2f}s.")
             time.sleep(sleep_for)
-

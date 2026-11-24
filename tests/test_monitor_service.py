@@ -3,23 +3,69 @@ from unittest.mock import patch
 
 import pytest
 
+from models.court_availability import CourtAvailability
 from monitor_service import MonitorService
+from snapshots_repository import SnapshotRepository
+
+TWO_FACILITIES = """
+days_ahead = 3
+
+[discord]
+mode = "global"
+
+[[facilities]]
+key = "good"
+name = "Good"
+provider = "tenis4u"
+facility_id = "1"
+court_type = "badminton"
+
+[[facilities]]
+key = "broken"
+name = "Broken"
+provider = "tenis4u"
+facility_id = "2"
+court_type = "badminton"
+"""
 
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
-@pytest.fixture(autouse=True)
-def _settings_factory(make_settings):
-    global _build_settings
-    _build_settings = make_settings
+class FakeProvider:
+    def __init__(self, courts=None, error=None, booking="https://book"):
+        self.courts = courts or []
+        self.error = error
+        self.booking = booking
+        self.calls = []
+
+    def fetch_availability(self, facility, date_from, date_to):
+        self.calls.append((facility.key, date_from, date_to))
+        if self.error:
+            raise self.error
+        return self.courts
+
+    def booking_url(self, facility):
+        return self.booking
 
 
-def _make_service(interval_minutes: int = 20) -> MonitorService:
-    """Return a MonitorService with an isolated Settings object."""
-    settings = _build_settings(fetch_interval_minutes=interval_minutes)
-    return MonitorService(settings)
+class FakeDispatcher:
+    def __init__(self):
+        self.dispatched = []
+
+    def dispatch(self, results):
+        self.dispatched.append(results)
+
+
+@pytest.fixture
+def make_service(make_settings):
+    def factory(interval_minutes: int = 20) -> MonitorService:
+        """Return a MonitorService with an isolated Settings object and no network."""
+        settings = make_settings(fetch_interval_minutes=interval_minutes)
+        return MonitorService(settings, providers={}, dispatcher=FakeDispatcher())
+
+    return factory
 
 
 def _frozen_datetime(minute: int, second: int = 0, microsecond: int = 0):
@@ -36,6 +82,88 @@ def _frozen_datetime(minute: int, second: int = 0, microsecond: int = 0):
 
 
 # ---------------------------------------------------------------------------
+# run_once
+# ---------------------------------------------------------------------------
+
+COURT = CourtAvailability("c1", "Badminton 1", datetime.datetime(2026, 11, 23, 17), datetime.datetime(2026, 11, 23, 19))
+TODAY = datetime.date(2026, 11, 23)
+
+
+@pytest.fixture
+def run_once_service(make_settings, tmp_path):
+    def factory(good=None, broken=None):
+        settings = make_settings(TWO_FACILITIES)
+        # route the second facility to its own fake provider instance
+        settings.facilities[1].provider = "fake_broken"
+        good = good or FakeProvider([COURT])
+        broken = broken or FakeProvider(error=RuntimeError("API down"))
+        dispatcher = FakeDispatcher()
+        service = MonitorService(
+            settings,
+            providers={"tenis4u": good, "fake_broken": broken},
+            repository=SnapshotRepository(tmp_path),
+            dispatcher=dispatcher,
+            today=lambda: TODAY,
+        )
+        return service, dispatcher, good, broken
+
+    return factory
+
+
+class TestRunOnce:
+    def test_failing_facility_does_not_stop_others_and_keeps_its_snapshot(self, run_once_service, tmp_path):
+        service, dispatcher, _, _ = run_once_service()
+        (tmp_path / "broken.json").write_text("previous", encoding="utf-8")
+
+        results = service.run_once()
+
+        assert [r.facility.key for r in results] == ["good"]
+        assert dispatcher.dispatched == [results]
+        assert (tmp_path / "broken.json").read_text(encoding="utf-8") == "previous"
+        assert (tmp_path / "good.json").exists()
+
+    def test_date_range_follows_days_ahead(self, run_once_service):
+        service, _, good, _ = run_once_service()
+        service.run_once()
+        assert good.calls == [("good", TODAY, datetime.date(2026, 11, 25))]
+
+    def test_first_run_is_baseline_then_unchanged(self, run_once_service):
+        service, dispatcher, _, _ = run_once_service()
+
+        [first] = service.run_once()
+        [second] = service.run_once()
+
+        assert first.is_baseline and first.changed and first.new_windows == []
+        assert not second.is_baseline and not second.changed
+
+    def test_new_window_after_baseline(self, run_once_service):
+        good = FakeProvider([COURT])
+        service, _, _, _ = run_once_service(good=good)
+        service.run_once()
+
+        extra = CourtAvailability("c2", "Badminton 2", COURT.start, COURT.end)
+        good.courts = [COURT, extra]
+        [result] = service.run_once()
+
+        assert [w.court_id for w in result.new_windows] == ["c2"]
+        assert result.changed
+
+    def test_booking_url_from_provider_or_override(self, run_once_service):
+        service, _, _, _ = run_once_service()
+        [result] = service.run_once()
+        assert result.booking_url == "https://book"
+
+        service.settings.facilities[0].booking_url = "https://override"
+        [result] = service.run_once()
+        assert result.booking_url == "https://override"
+
+    def test_nothing_dispatched_when_every_facility_fails(self, run_once_service):
+        service, dispatcher, _, _ = run_once_service(good=FakeProvider(error=RuntimeError("x")))
+        assert service.run_once() == []
+        assert dispatcher.dispatched == []
+
+
+# ---------------------------------------------------------------------------
 # _seconds_until_next_slot
 # ---------------------------------------------------------------------------
 
@@ -46,8 +174,12 @@ class TestSecondsUntilNextSlot:
         XX:00:00, XX:20:00, XX:40:00
     """
 
+    @pytest.fixture(autouse=True)
+    def _factory(self, make_service):
+        self.make_service = make_service
+
     def _seconds(self, minute, second=0, microsecond=0, interval=20):
-        svc = _make_service(interval_minutes=interval)
+        svc = self.make_service(interval_minutes=interval)
         with _frozen_datetime(minute, second, microsecond):
             return svc._seconds_until_next_slot()
 

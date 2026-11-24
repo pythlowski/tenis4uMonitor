@@ -1,58 +1,70 @@
 from datetime import datetime
-from dataclasses import replace
 
-from models.free_slot import FreeSlot
-from models.snapshot import Snapshot
+import pytest
+
+from models.facility_snapshot import FacilitySnapshot
+from models.free_window import FreeWindow
 from snapshots_comparator import SnapshotsComparator
 
-snapshots_comparator = SnapshotsComparator()
 
-free_slots = [
-    FreeSlot(courtName="badminton 1", date=datetime(2026, 9, 23, 19, 00)),
-    FreeSlot(courtName="badminton 2", date=datetime(2026, 9, 23, 19, 30))
-]
+def w(start, end, court="1"):
+    return FreeWindow(datetime(2026, 11, 23, *start), datetime(2026, 11, 23, *end), court)
 
-def test_get_diff_returns_not_equal_and_identifies_new_slots_when_snapshot_grows():
-    snapshot1 = Snapshot(free_slots=free_slots)
-    snapshot2 = Snapshot(free_slots=[*free_slots, FreeSlot(courtName="badminton 1", date=datetime(2026, 9, 23, 20, 00))])
 
-    snapshots_diff = snapshots_comparator.get_diff(snapshot1, snapshot2)
+def snap(*windows):
+    return FacilitySnapshot(facility_key="f", taken_at=datetime(2026, 11, 23, 12), windows=list(windows))
 
-    assert snapshots_diff.are_equal == False
-    assert len(snapshots_diff.new_slots) == 1
 
-def test_get_diff_returns_equal_and_identifies_no_new_slots_when_snapshots_have_the_same_slots():
-    snapshot1 = Snapshot(free_slots=free_slots)
-    snapshot2 = Snapshot(free_slots=free_slots)
+@pytest.fixture
+def comparator():
+    return SnapshotsComparator()
 
-    snapshots_diff = snapshots_comparator.get_diff(snapshot1, snapshot2)
 
-    assert snapshots_diff.are_equal == True
-    assert len(snapshots_diff.new_slots) == 0
+def test_no_change(comparator):
+    diff = comparator.get_diff(snap(w((17,), (19,))), snap(w((17,), (19,))))
+    assert not diff.changed and diff.new_windows == [] and not diff.is_baseline
 
-def test_get_diff_returns_not_equal_and_identifies_no_new_slots_when_snapshot_shrinks():
-    snapshot1 = Snapshot(free_slots=[*free_slots, FreeSlot(courtName="badminton 1", date=datetime(2026, 9, 23, 20, 00))])
-    snapshot2 = Snapshot(free_slots=free_slots)
 
-    snapshots_diff = snapshots_comparator.get_diff(snapshot1, snapshot2)
+def test_new_window(comparator):
+    new = w((20,), (21,))
+    diff = comparator.get_diff(snap(w((17,), (19,))), snap(w((17,), (19,)), new))
+    assert diff.changed and diff.new_windows == [new]
 
-    assert snapshots_diff.are_equal == False
-    assert len(snapshots_diff.new_slots) == 0
 
-def test_get_diff_returns_not_equal_and_identifies_new_slots_when_snapshot_slots_have_same_dates_but_different_court_names():
-    snapshot1 = Snapshot(free_slots=free_slots)
-    snapshot2 = Snapshot(free_slots=[replace(slot, courtName="badminton2") for slot in free_slots])
+def test_grown_window_is_new(comparator):
+    grown = w((17,), (20,))
+    diff = comparator.get_diff(snap(w((17,), (19,))), snap(grown))
+    assert diff.new_windows == [grown]
 
-    snapshots_diff = snapshots_comparator.get_diff(snapshot1, snapshot2)
 
-    assert snapshots_diff.are_equal == False
-    assert len(snapshots_diff.new_slots) == 2
+def test_shrunk_window_is_changed_but_not_new(comparator):
+    diff = comparator.get_diff(snap(w((17,), (20,))), snap(w((17, 30), (19,))))
+    assert diff.changed and diff.new_windows == []
 
-def test_get_diff_returns_not_equal_and_identifies_new_slots_when_snapshot_slots_have_same_court_names_but_different_dates():
-    snapshot1 = Snapshot(free_slots=free_slots)
-    snapshot2 = Snapshot(free_slots=[replace(slot, date=datetime(2026, 9, 23, 20, 00)) for slot in free_slots])
 
-    snapshots_diff = snapshots_comparator.get_diff(snapshot1, snapshot2)
+def test_another_court_for_same_range_is_new(comparator):
+    other = w((17,), (19,), court="2")
+    diff = comparator.get_diff(snap(w((17,), (19,))), snap(w((17,), (19,)), other))
+    assert diff.new_windows == [other]
 
-    assert snapshots_diff.are_equal == False
-    assert len(snapshots_diff.new_slots) == 2
+
+def test_court_a_does_not_cover_court_b(comparator):
+    b = w((17, 30), (18, 30), court="B")
+    diff = comparator.get_diff(snap(w((16,), (22,), court="A")), snap(b))
+    assert diff.new_windows == [b]
+
+
+def test_removed_window(comparator):
+    diff = comparator.get_diff(snap(w((17,), (19,)), w((20,), (21,))), snap(w((17,), (19,))))
+    assert diff.changed and diff.new_windows == []
+
+
+def test_taken_at_is_ignored(comparator):
+    old = snap(w((17,), (19,)))
+    new = old.model_copy(update={"taken_at": datetime(2026, 11, 24)})
+    assert not comparator.get_diff(old, new).changed
+
+
+def test_missing_old_snapshot_is_a_silent_baseline(comparator):
+    diff = comparator.get_diff(None, snap(w((17,), (19,))))
+    assert diff.is_baseline and diff.changed and diff.new_windows == []

@@ -1,5 +1,5 @@
 from logger import Logger
-from models.snapshot import Snapshot
+from models.facility_snapshot import FacilitySnapshot
 from models.snapshots_diff import SnapshotsDiff
 
 
@@ -7,11 +7,19 @@ class SnapshotsComparator:
     def __init__(self):
         self.logger = Logger(name="SNAP_COMPARE")
 
-    def get_diff(self, old: Snapshot, new: Snapshot) -> SnapshotsDiff:
-        are_equal = old == new
-        new_slots = [slot for slot in new.free_slots if slot not in old.free_slots]
+    def get_diff(self, old: FacilitySnapshot | None, new: FacilitySnapshot) -> SnapshotsDiff:
+        if old is None:
+            self.logger.info(f"[{new.facility_key}] No previous snapshot, taking a baseline.")
+            return SnapshotsDiff(changed=True, new_windows=[], is_baseline=True)
 
-        if new_slots:
-            self.logger.info(f"Found {len(new_slots)} new slots.")
+        changed = set(old.windows) != set(new.windows)
+        # A window is new unless an old window on the same court fully covers it:
+        # shrinking is silent; growing, a new window or another court freeing up is new.
+        new_windows = [
+            window for window in new.windows if not any(previous.covers(window) for previous in old.windows)
+        ]
 
-        return SnapshotsDiff(are_equal=are_equal, new_slots=new_slots)
+        if new_windows:
+            self.logger.info(f"[{new.facility_key}] Found {len(new_windows)} new windows.")
+
+        return SnapshotsDiff(changed=changed, new_windows=new_windows)
