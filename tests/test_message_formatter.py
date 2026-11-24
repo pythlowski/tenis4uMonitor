@@ -86,7 +86,7 @@ class TestFacilityEmbed:
     def test_lists_courts_then_booking_link(self, formatter):
         embed = formatter.facility_embed(result([MON_1, MON_2]))
         lines = embed["description"].split("\n")
-        assert lines[0] == "Found 2 free windows for: every day"
+        assert lines[0] == "Found 2 free windows."
         assert lines[2:5] == ["**Monday 23.11**", "- 16:30–19:00 · court 1", "- 17:30–19:00 · court 2"]
         assert lines[-1].startswith("[Book") and lines[-1].endswith(f"]({URL})")
 

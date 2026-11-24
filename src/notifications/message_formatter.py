@@ -137,8 +137,8 @@ class MessageFormatter:
 
     def summary(self, count: int) -> str:
         if count:
-            return f"Found {count} free window{'s' if count != 1 else ''} for: {weekdays_label(self.weekdays)}"
-        return f"No free windows for: {weekdays_label(self.weekdays)}"
+            return f"Found {count} free window{'s' if count != 1 else ''}."
+        return f"No free windows."
 
     def facility_embed(self, result: FacilityResult) -> dict:
         book = [f"[Book here!]({result.booking_url})"] if result.booking_url else []
