@@ -9,6 +9,7 @@ from data_service import DataService
 from snapshots_comparator import SnapshotsComparator
 from snapshots_repository import SnapshotRepository
 from logger import Logger
+from providers.tenis4u import Tenis4uProvider
 from models.snapshot import Snapshot
 
 class MonitorService:
@@ -16,7 +17,7 @@ class MonitorService:
     def __init__(self, settings: Settings):
         self.logger = Logger(name="MONITOR")
         self.settings = settings
-        self.notifier = DiscordNotifier(self.settings.api.discord_webhook_url)
+        self.notifier = DiscordNotifier(self.settings.discord.global_webhook_url.get_secret_value())
         self.data_service = DataService(self.settings)
         self.snapshots_repository = SnapshotRepository()
         self.snapshots_comparator = SnapshotsComparator()
@@ -37,7 +38,7 @@ class MonitorService:
                 payload=MessageFormatter.get_payload(
                     snapshot=new_snapshot,
                     new_slots=snapshots_diff.new_slots, 
-                    url=self.settings.api.url + f"/court/{self.settings.facility_id}"
+                    url=Tenis4uProvider.WEB_BASE_URL + f"/court/{self.settings.facilities[0].facility_id}"
                 )
             )
 
@@ -47,14 +48,14 @@ class MonitorService:
         For example, with fetch_interval_minutes=20 the scheduled times are
         XX:00, XX:20 and XX:40 (relative to the top of each hour).
         """
-        interval = self.settings.api.fetch_interval_minutes * 60  # seconds
+        interval = self.settings.fetch_interval_minutes * 60  # seconds
         now = datetime.datetime.now()
         elapsed_in_hour = now.minute * 60 + now.second + now.microsecond / 1_000_000
         remainder = elapsed_in_hour % interval
         return interval - remainder if remainder != 0 else interval
 
     def start(self) -> None:
-        interval_minutes = self.settings.api.fetch_interval_minutes
+        interval_minutes = self.settings.fetch_interval_minutes
         sleep_for = self._seconds_until_next_slot()
         self.logger.info(
             f"Waiting {sleep_for:.1f}s until next scheduled slot "
