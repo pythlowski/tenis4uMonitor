@@ -13,7 +13,7 @@ mode = "global"                    # "global" | "per_facility" | "both"
 # Webhook URLs are secrets -> .env only (see .env.example)
 
 [[facilities]]
-key = "tenis4u_104"                # unique; lowercase/digits/single underscores. Used for the snapshot file and webhook env var
+key = "fame_sport_club"                # unique; lowercase/digits/single underscores. Used for the snapshot file and webhook env var
 name = "tenis4u 104"               # shown in Discord
 provider = "tenis4u"
 facility_id = "104"
@@ -21,7 +21,7 @@ court_type = "badminton"           # tennis | badminton | padel
 # booking_url = "https://..."      # optional override of the provider's booking link
 
 [[facilities]]
-key = "blonia_badminton"
+key = "blonia_sport"
 name = "Błonia Sport"
 provider = "twojtenis"
 facility_id = "958662f0-0bd2-4fdc-8bef-bb2d69761adb"   # club GUID
