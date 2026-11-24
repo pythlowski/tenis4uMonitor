@@ -3,13 +3,12 @@ import queue
 import time
 import requests
 
-from settings import ApiSettings
 from logger import Logger
 
 class ProxyBackgroundService:
-    def __init__(self, api_settings: ApiSettings):
+    def __init__(self, max_proxies_ready: int = 5):
         self.logger = Logger(name="PROXY")
-        self.ready_proxies: queue.Queue[str] = queue.Queue(maxsize=api_settings.max_proxies_ready)
+        self.ready_proxies: queue.Queue[str] = queue.Queue(maxsize=max_proxies_ready)
         self.untested_proxies: queue.Queue[str] = queue.Queue()
         
         self.is_running = True
@@ -17,7 +16,7 @@ class ProxyBackgroundService:
         self.worker_thread = threading.Thread(target=self._test_proxies_loop, daemon=True)
         self.worker_thread.start()
 
-    def get_proxy(self, timeout=30) -> dict[str, str]:
+    def get_proxy(self, timeout=30) -> str:
         return self.ready_proxies.get(block=True, timeout=timeout)
 
     def stop(self):
