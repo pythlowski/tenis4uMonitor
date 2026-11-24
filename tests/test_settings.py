@@ -37,16 +37,16 @@ class TestDefaults:
         settings = make_settings()
         assert settings.begin_time == time(16, 30)
         assert settings.end_time == time(22, 30)
-        assert settings.min_duration_minutes == 60
+        assert settings.duration_minutes == 60
         assert settings.days_ahead == 7
         assert "Saturday" in settings.weekdays and len(settings.weekdays) == 7
         assert settings.filters.weekdays == tuple(settings.weekdays)
 
     def test_global_filters_from_toml(self, make_settings):
-        toml = 'begin_time = "17:00"\nend_time = "21:00"\nmin_duration_minutes = 90\nweekdays = ["Monday"]\n' + BASE_TOML
+        toml = 'begin_time = "17:00"\nend_time = "21:00"\nduration_minutes = 90\nweekdays = ["Monday"]\n' + BASE_TOML
         settings = make_settings(toml)
         assert (settings.begin_time, settings.end_time) == (time(17), time(21))
-        assert settings.filters.min_duration_minutes == 90
+        assert settings.filters.duration_minutes == 90
         assert settings.weekdays == ["Monday"]
 
 

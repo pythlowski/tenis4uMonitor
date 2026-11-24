@@ -60,12 +60,13 @@ def entries(windows: list[FreeWindow], facility: str = "", order: int = 0) -> li
 def day_lines(items: list[Entry]) -> list[str]:
     """
     **Monday 23.11**
-    - 16:30–19:00 · [Facility](url) · court 1
+    - 16:30–17:30 · [Facility](url) (court 1)    with a facility (global channel)
+    - 16:30–17:30 · court 1                      without one
 
-    Days in date order; within a day by time, then facility, then court.
+    One line per window; days in date order, within a day by time, then facility, then court.
     """
     ordered = sorted(
-        items, key=lambda e: (e[0].start, e[0].end, e[2], natural_key(e[0].court_label))
+        items, key=lambda e: (e[0].start, e[0].end, e[2], natural_key(e[0].court_name))
     )
     lines: list[str] = []
     current_day: date | None = None
@@ -74,8 +75,9 @@ def day_lines(items: list[Entry]) -> list[str]:
         if day != current_day:
             lines.append(f"**{day_label(day)}**")
             current_day = day
-        parts = [format_range(window.start, window.end), facility, window.court_label.lower()]
-        lines.append("- " + " · ".join(part for part in parts if part))
+        court = window.court_name.lower()
+        place = f"{facility} ({court})" if facility else court
+        lines.append(f"- {format_range(window.start, window.end)} · {place}")
     return lines
 
 

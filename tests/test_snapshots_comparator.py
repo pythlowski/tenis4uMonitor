@@ -8,7 +8,7 @@ from snapshots_comparator import SnapshotsComparator
 
 
 def w(start, end, court="1"):
-    return FreeWindow(datetime(2026, 11, 23, *start), datetime(2026, 11, 23, *end), court)
+    return FreeWindow(datetime(2026, 11, 23, *start), datetime(2026, 11, 23, *end), court, court)
 
 
 def snap(*windows):

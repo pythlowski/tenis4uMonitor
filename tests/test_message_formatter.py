@@ -70,16 +70,12 @@ class TestDayLines:
         same = [w(23, (18, 0), (19, 0), f"c{n}", f"Court {n}") for n in (10, 2, 1)]
         assert day_lines(entries(same))[1:] == ["- 18:00–19:00 · court 1", "- 18:00–19:00 · court 2", "- 18:00–19:00 · court 10"]
 
-    def test_facility_between_hours_and_court(self):
-        assert day_lines(entries([MON_1], "Hala"))[1] == "- 16:30–19:00 · Hala · court 1"
+    def test_facility_with_court_in_parentheses(self):
+        assert day_lines(entries([MON_1], "Hala"))[1] == "- 16:30–19:00 · Hala (court 1)"
 
     def test_same_time_sorted_by_facility_order(self):
         items = entries([MON_10], "B", order=1) + entries([MON_10], "A", order=0)
-        assert day_lines(items)[1:] == ["- 18:00–19:00 · A · court 10", "- 18:00–19:00 · B · court 10"]
-
-    def test_falls_back_to_court_id_without_name(self):
-        unnamed = FreeWindow(datetime(2026, 11, 23, 17), datetime(2026, 11, 23, 18), "Badminton 3")
-        assert day_lines(entries([unnamed]))[1] == "- 17:00–18:00 · badminton 3"
+        assert day_lines(items)[1:] == ["- 18:00–19:00 · A (court 10)", "- 18:00–19:00 · B (court 10)"]
 
 
 class TestFacilityEmbed:
@@ -158,9 +154,9 @@ class TestGlobalPayloads:
             "Found 2 free windows.",
             "",
             "**Monday 23.11**",
-            f"- 16:30–19:00 · [Hala XYZ]({URL}) · court 1",
+            f"- 16:30–19:00 · [Hala XYZ]({URL}) (court 1)",
             "**Tuesday 24.11**",
-            f"- 18:00–20:00 · [Blonia]({URL_B}) · court 1",
+            f"- 18:00–20:00 · [Blonia]({URL_B}) (court 1)",
             "",
             "**Book:**",
             f"- [Hala XYZ]({URL})",
@@ -171,7 +167,7 @@ class TestGlobalPayloads:
 
     def test_facility_name_is_plain_without_url(self, formatter):
         [payload] = formatter.global_payloads([result([MON_1], name="Hala", url="")])
-        assert "- 16:30–19:00 · Hala · court 1" in payload["embeds"][0]["description"]
+        assert "- 16:30–19:00 · Hala (court 1)" in payload["embeds"][0]["description"]
 
     def test_new_windows_show_facility_court_and_range(self, formatter):
         results = [
@@ -183,9 +179,9 @@ class TestGlobalPayloads:
         assert [e.get("title") for e in payload["embeds"]] == [NEW_WINDOWS_TITLE, GLOBAL_TITLE]
         assert payload["embeds"][0]["description"].split("\n") == [
             "**Monday 23.11**",
-            f"- 16:30–19:00 · [Hala XYZ]({URL}) · court 1",
+            f"- 16:30–19:00 · [Hala XYZ]({URL}) (court 1)",
             "**Tuesday 24.11**",
-            f"- 18:00–20:00 · [Blonia]({URL_B}) · court 1",
+            f"- 18:00–20:00 · [Blonia]({URL_B}) (court 1)",
         ]
 
     def test_no_ping_when_only_baselines(self, formatter):

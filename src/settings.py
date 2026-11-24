@@ -88,7 +88,7 @@ class Settings(BaseSettings):
     # Global filters, applied to every facility
     begin_time: datetime.time = datetime.time(16, 30)
     end_time: datetime.time = datetime.time(22, 30)
-    min_duration_minutes: int = Field(60, ge=1)
+    duration_minutes: int = Field(60, ge=1)  # length of every reported window
     weekdays: list[Weekday] = Field(default_factory=lambda: list(ALL_WEEKDAYS))
 
     facilities: list[FacilityConfig] = Field(min_length=1)
@@ -112,7 +112,7 @@ class Settings(BaseSettings):
         return AvailabilityFilters(
             begin_time=self.begin_time,
             end_time=self.end_time,
-            min_duration_minutes=self.min_duration_minutes,
+            duration_minutes=self.duration_minutes,
             weekdays=tuple(self.weekdays),
         )
 

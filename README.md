@@ -14,10 +14,10 @@ Supported providers:
 Every `fetch_interval_minutes` (aligned to even boundaries, e.g. XX:00/20/40) the monitor, for each configured facility:
 
 1. fetches free intervals for the facility's court type from its provider (tenis4u returns free hours directly; for twojtenis free time = opening hours minus public bookings),
-2. clips them to the global `begin_time`–`end_time`, keeps only the selected `weekdays`, merges touching/overlapping intervals **per court** and drops windows shorter than `min_duration_minutes`,
+2. clips them to the global `begin_time`–`end_time`, keeps only the selected `weekdays`, merges touching/overlapping intervals **per court** and splits each free span into windows of exactly `duration_minutes`, starting every 30 minutes (a free 16:00–18:00 with 60 minutes gives 16:00–17:00, 16:30–17:30 and 17:00–18:00),
 3. compares them with the facility's previous snapshot (`snapshots/{key}.json`).
 
-If anything changed, a Discord message lists the free windows grouped by date, one line per window, e.g. `16:30–19:00 · Fame Sport Club · court 1` (the facility name, linked to its booking page, appears only in the global channel), followed by the booking links. In `global` mode all facilities are merged into one message (split only when Discord's size limits require it). New windows are listed separately in the same format. `@everyone` is mentioned only for **new** windows — a window that grew, appeared, or a court that freed up. Shrinking windows don't ping. The very first run for a facility is a silent baseline.
+If anything changed, a Discord message lists the windows grouped by date, one line per window (distinct time range, facility and court), ordered by time: `16:30–17:30 · Fame Sport Club (court 1)` in the global channel, where facility names link to their booking pages, and `16:30–17:30 · court 1` in per-facility channels. The booking links follow the list. In `global` mode all facilities are merged into one message (split only when Discord's size limits require it). New windows are listed separately in the same format. `@everyone` is mentioned only for **new** windows — a window that grew, appeared, or a court that freed up. Shrinking windows don't ping. The very first run for a facility is a silent baseline.
 
 ## Requirements
 
@@ -47,15 +47,15 @@ days_ahead = 7                     # look-ahead horizon in days (1-14)
 # Global filters, applied to every facility
 begin_time = "16:30"
 end_time = "22:30"
-min_duration_minutes = 60
+duration_minutes = 60              # every window is exactly this long, starting every 30 minutes
 weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
 [discord]
 mode = "global"                    # "global" | "per_facility" | "both"
 
 [[facilities]]
-key = "tenis4u_104"                # unique: lowercase letters, digits, single underscores
-name = "tenis4u 104"               # shown in Discord
+key = "fame_sport_club"            # unique: lowercase letters, digits, single underscores
+name = "Fame Sport Club"           # shown in Discord
 provider = "tenis4u"
 facility_id = "104"
 court_type = "badminton"           # tennis | badminton | padel
@@ -74,7 +74,7 @@ The settings are validated at startup: unknown providers or court types, duplica
 | `per_facility` | a message per changed facility to its own channel | `{ENV}_DISCORD__FACILITY__{KEY}_WEBHOOK_URL` for every facility |
 | `both` | both of the above | all of the above |
 
-`{KEY}` is the facility `key` in upper case, e.g. `PROD_DISCORD__FACILITY__TENIS4U_104_WEBHOOK_URL`.
+`{KEY}` is the facility `key` in upper case, e.g. `PROD_DISCORD__FACILITY__FAME_SPORT_CLUB_WEBHOOK_URL`.
 
 ### Adding a facility
 
