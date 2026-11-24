@@ -67,3 +67,15 @@ def test_global_includes_unchanged_facilities_when_one_changed():
     d.dispatch([result("a", changed=False), result("b", changed=True)])
     [(_, payload)] = notifier.sent
     assert [e["title"] for e in payload["embeds"]] == ["A", "B"]
+
+
+def test_logs_destination_and_no_change(caplog):
+    import logging
+
+    d, _ = dispatcher("both")
+    with caplog.at_level(logging.INFO, logger="DISPATCHER"):
+        d.dispatch([result("a", changed=False)])
+        d.dispatch([result("a", changed=True)])
+    assert "nothing to send" in caplog.text
+    assert "'a' report to its facility webhook" in caplog.text
+    assert "global webhook" in caplog.text

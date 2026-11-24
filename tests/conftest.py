@@ -1,10 +1,16 @@
 import os
+import tempfile
 import textwrap
 
 import pytest
 
-import settings as settings_module
-from settings import Settings
+import logger
+
+# Keep test log output out of the real logs/ directory.
+logger.Logger.LOGS_DIRECTORY = tempfile.mkdtemp(prefix="court-monitor-test-logs-")
+
+import settings as settings_module  # noqa: E402
+from settings import Settings  # noqa: E402
 
 PREFIX = settings_module.ENV_PREFIX
 
