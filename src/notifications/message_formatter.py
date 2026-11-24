@@ -16,7 +16,9 @@ MAX_BUTTON_LABEL = 80
 BUTTONS_PER_ROW = 5
 MAX_BUTTON_ROWS = 5
 
-REPORT_COLOR = 5793266
+LIGHT_BLUE = 0x7EC8E3
+DARK_BLUE = 0x1F4E8C
+REPORT_COLORS = (LIGHT_BLUE, DARK_BLUE)  # alternated per message so consecutive reports stand apart
 NEW_WINDOWS_COLOR = 15906135
 FOOTER = "Monitor"
 GLOBAL_TITLE = "Free courts"
@@ -74,16 +76,16 @@ def day_lines(items: list[Entry]) -> list[str]:
     """
     **Monday 23.11**
     - 16:00–17:00 · [Błonia Sport](url) (b1, b2), [Fame Sport Club](url) (b4)    with facilities (global channel)
-    - 16:00–17:00 · badminton 1, badminton 2                                     without them
+    - 16:00–17:00 · b1, b2                                                       without them
 
-    Court names are abbreviated only next to a facility, to keep the merged list short.
+    Court names are abbreviated here, at formatting time; windows keep the provider's names.
 
     One line per distinct time range; days in date order, ranges by time, then facilities, then courts.
     """
     ranges: dict[tuple[datetime, datetime], dict[tuple[int, str], list[str]]] = {}
     for window, facility, order in items:
         courts = ranges.setdefault((window.start, window.end), {}).setdefault((order, facility), [])
-        courts.append((short_court_name(window.court_name) if facility else window.court_name).lower())
+        courts.append(short_court_name(window.court_name).lower())
 
     lines: list[str] = []
     current_day: date | None = None
@@ -155,7 +157,7 @@ class MessageFormatter:
 
     # ---- embeds -----------------------------------------------------------
 
-    def facility_embed(self, result: FacilityResult) -> dict:
+    def facility_embed(self, result: FacilityResult, color: int = LIGHT_BLUE) -> dict:
         book = [f"[Book here!]({result.booking_url})"] if result.booking_url else []
         body_limit = MAX_DESCRIPTION - len("\n".join(book)) - 2
         body = join_limited(day_lines(entries(result.windows)), body_limit) or NO_WINDOWS
@@ -163,7 +165,7 @@ class MessageFormatter:
         embed = {
             "title": result.facility.name[:MAX_TITLE],
             "description": "\n".join([body, *([""] + book if book else [])]),
-            "color": REPORT_COLOR,
+            "color": color,
             "footer": {"text": FOOTER},
             "timestamp": self._now(),
         }
@@ -180,7 +182,7 @@ class MessageFormatter:
             "timestamp": self._now(),
         }
 
-    def global_embeds(self, results: list[FacilityResult]) -> list[dict]:
+    def global_embeds(self, results: list[FacilityResult], color: int = LIGHT_BLUE) -> list[dict]:
         """All facilities merged into one list, then the booking links; split only to fit Discord limits."""
         merged = [
             entry
@@ -194,7 +196,7 @@ class MessageFormatter:
             lines += ["", "**Book:**", *links]
 
         embeds = [
-            {"description": text, "color": REPORT_COLOR} for text in split_lines(lines, MAX_DESCRIPTION)
+            {"description": text, "color": color} for text in split_lines(lines, MAX_DESCRIPTION)
         ]
         embeds[0]["title"] = GLOBAL_TITLE
         embeds[-1]["footer"] = {"text": FOOTER}
@@ -203,15 +205,15 @@ class MessageFormatter:
 
     # ---- payloads ---------------------------------------------------------
 
-    def facility_payload(self, result: FacilityResult) -> dict:
-        embeds = [self.facility_embed(result)]
+    def facility_payload(self, result: FacilityResult, color: int = LIGHT_BLUE) -> dict:
+        embeds = [self.facility_embed(result, color)]
         if result.should_ping:
             embeds.append(self.new_windows_embed(day_lines(entries(result.new_windows))))
 
         buttons = [link_button("Book here!", result.booking_url)] if result.booking_url else []
         return self._payload(embeds, buttons, ping=result.should_ping)
 
-    def global_payloads(self, results: list[FacilityResult]) -> list[dict]:
+    def global_payloads(self, results: list[FacilityResult], color: int = LIGHT_BLUE) -> list[dict]:
         new_lines = day_lines([
             entry
             for order, result in enumerate(results)
@@ -221,7 +223,7 @@ class MessageFormatter:
         ping = bool(new_lines)
 
         # The new-windows embed goes first so the ping shows it.
-        embeds = ([self.new_windows_embed(new_lines)] if new_lines else []) + self.global_embeds(results)
+        embeds = ([self.new_windows_embed(new_lines)] if new_lines else []) + self.global_embeds(results, color)
 
         chunks: list[list[dict]] = [[]]
         size = 0
