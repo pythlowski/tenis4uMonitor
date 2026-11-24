@@ -1,0 +1,54 @@
+{
+  "stations": [
+    {
+      "name": "Badminton 1",
+      "type": "badminton",
+      "days": [
+        {"date": "2026/11/23", "free_hours": [
+          {"begin_time": "16:00:00", "end_time": "19:00:00"},
+          {"begin_time": "21:00:00", "end_time": "00:00:00"}
+        ]},
+        {"date": "2026/11/24", "free_hours": [
+          {"begin_time": "17:30:00", "end_time": "20:00:00"}
+        ]}
+      ]
+    },
+    {
+      "name": "Badminton 2",
+      "type": "badminton",
+      "days": [
+        {"date": "2026/11/23", "free_hours": [
+          {"begin_time": "18:00:00", "end_time": "20:00:00"}
+        ]}
+      ]
+    },
+    {
+      "name": "Padel 1",
+      "type": "padel",
+      "days": [
+        {"date": "2026/11/23", "free_hours": [{"begin_time": "10:00:00", "end_time": "12:00:00"}]}
+      ]
+    },
+    {
+      "name": "Padel Hala 1",
+      "type": "Padel Hala",
+      "days": [
+        {"date": "2026/11/23", "free_hours": [{"begin_time": "12:00:00", "end_time": "13:00:00"}]}
+      ]
+    },
+    {
+      "name": "Kort 1",
+      "type": "tenis hala: szt. mączka ",
+      "days": [
+        {"date": "2026/11/23", "free_hours": [{"begin_time": "08:00:00", "end_time": "09:30:00"}]}
+      ]
+    },
+    {
+      "name": "Squash 1",
+      "type": "squash",
+      "days": [
+        {"date": "2026/11/23", "free_hours": [{"begin_time": "08:00:00", "end_time": "09:00:00"}]}
+      ]
+    }
+  ]
+}
