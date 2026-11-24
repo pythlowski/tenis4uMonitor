@@ -12,7 +12,8 @@ from notifications.message_formatter import (
     MAX_EMBED_CHARS_PER_MESSAGE,
     NEW_WINDOWS_TITLE,
     MessageFormatter,
-    court_lines,
+    day_lines,
+    entries,
     embed_size,
     join_limited,
     split_lines,
@@ -54,23 +55,31 @@ def formatter():
     return MessageFormatter(weekdays=ALL_DAYS, now=lambda: NOW)
 
 
-class TestCourtLines:
-    def test_groups_by_court_then_day_with_ranges(self):
-        assert court_lines([TUE_1, MON_2, MON_1_LATE, MON_1]) == [
-            "**Court 1**",
-            "- Monday 23.11 · 16:30–19:00, 20:00–22:30",
-            "- Tuesday 24.11 · 18:00–20:00",
-            "**Court 2**",
-            "- Monday 23.11 · 17:30–19:00",
+class TestDayLines:
+    def test_groups_by_date_then_sorts_by_time_and_court(self):
+        assert day_lines(entries([TUE_1, MON_1_LATE, MON_2, MON_1])) == [
+            "**Monday 23.11**",
+            "- 16:30–19:00 · court 1",
+            "- 17:30–19:00 · court 2",
+            "- 20:00–22:30 · court 1",
+            "**Tuesday 24.11**",
+            "- 18:00–20:00 · court 1",
         ]
 
-    def test_courts_in_natural_order(self):
-        lines = court_lines([MON_10, MON_2, MON_1])
-        assert [line for line in lines if line.startswith("**")] == ["**Court 1**", "**Court 2**", "**Court 10**"]
+    def test_same_time_courts_in_natural_order(self):
+        same = [w(23, (18, 0), (19, 0), f"c{n}", f"Court {n}") for n in (10, 2, 1)]
+        assert day_lines(entries(same))[1:] == ["- 18:00–19:00 · court 1", "- 18:00–19:00 · court 2", "- 18:00–19:00 · court 10"]
+
+    def test_facility_between_hours_and_court(self):
+        assert day_lines(entries([MON_1], "Hala"))[1] == "- 16:30–19:00 · Hala · court 1"
+
+    def test_same_time_sorted_by_facility_order(self):
+        items = entries([MON_10], "B", order=1) + entries([MON_10], "A", order=0)
+        assert day_lines(items)[1:] == ["- 18:00–19:00 · A · court 10", "- 18:00–19:00 · B · court 10"]
 
     def test_falls_back_to_court_id_without_name(self):
         unnamed = FreeWindow(datetime(2026, 11, 23, 17), datetime(2026, 11, 23, 18), "Badminton 3")
-        assert court_lines([unnamed])[0] == "**Badminton 3**"
+        assert day_lines(entries([unnamed]))[1] == "- 17:00–18:00 · badminton 3"
 
 
 class TestFacilityEmbed:
@@ -78,7 +87,7 @@ class TestFacilityEmbed:
         embed = formatter.facility_embed(result([MON_1, MON_2]))
         lines = embed["description"].split("\n")
         assert lines[0] == "Found 2 free windows for: every day"
-        assert lines[2:6] == ["**Court 1**", "- Monday 23.11 · 16:30–19:00", "**Court 2**", "- Monday 23.11 · 17:30–19:00"]
+        assert lines[2:5] == ["**Monday 23.11**", "- 16:30–19:00 · court 1", "- 17:30–19:00 · court 2"]
         assert lines[-1].startswith("[Book") and lines[-1].endswith(f"]({URL})")
 
     def test_title_url_and_footer(self, formatter):
@@ -114,7 +123,7 @@ class TestFacilityPayload:
         payload = formatter.facility_payload(result([MON_1, MON_2], new=[MON_2]))
         assert payload["content"] == "@everyone"
         assert payload["embeds"][1]["title"] == NEW_WINDOWS_TITLE
-        assert payload["embeds"][1]["description"] == "- Court 2 · Monday 23.11 17:30–19:00"
+        assert payload["embeds"][1]["description"] == "**Monday 23.11**\n- 17:30–19:00 · court 2"
         assert payload["allowed_mentions"] == {"parse": ["everyone"]}
 
     def test_no_ping_without_new_windows(self, formatter):
@@ -148,13 +157,10 @@ class TestGlobalPayloads:
         assert embed["description"].split("\n") == [
             "Found 2 free windows for: every day",
             "",
-            "__**Hala XYZ**__",
-            "**Court 1**",
-            "- Monday 23.11 · 16:30–19:00",
-            "",
-            "__**Blonia**__",
-            "**Court 1**",
-            "- Tuesday 24.11 · 18:00–20:00",
+            "**Monday 23.11**",
+            f"- 16:30–19:00 · [Hala XYZ]({URL}) · court 1",
+            "**Tuesday 24.11**",
+            f"- 18:00–20:00 · [Blonia]({URL_B}) · court 1",
             "",
             "**Book:**",
             f"- [Hala XYZ]({URL})",
@@ -163,9 +169,9 @@ class TestGlobalPayloads:
         labels = [b["label"] for row in payload["components"] for b in row["components"]]
         assert labels == ["Hala XYZ", "Blonia"]
 
-    def test_facility_without_windows_is_listed(self, formatter):
-        [payload] = formatter.global_payloads([result([], name="Empty")])
-        assert "__**Empty**__\n_No free windows_" in payload["embeds"][0]["description"]
+    def test_facility_name_is_plain_without_url(self, formatter):
+        [payload] = formatter.global_payloads([result([MON_1], name="Hala", url="")])
+        assert "- 16:30–19:00 · Hala · court 1" in payload["embeds"][0]["description"]
 
     def test_new_windows_show_facility_court_and_range(self, formatter):
         results = [
@@ -175,9 +181,12 @@ class TestGlobalPayloads:
         [payload] = formatter.global_payloads(results)
         assert payload["content"] == "@everyone"
         assert [e.get("title") for e in payload["embeds"]] == [NEW_WINDOWS_TITLE, GLOBAL_TITLE]
-        assert payload["embeds"][0]["description"] == (
-            "- **Hala XYZ** · Court 1 · Monday 23.11 16:30–19:00\n- **Blonia** · Court 1 · Tuesday 24.11 18:00–20:00"
-        )
+        assert payload["embeds"][0]["description"].split("\n") == [
+            "**Monday 23.11**",
+            f"- 16:30–19:00 · [Hala XYZ]({URL}) · court 1",
+            "**Tuesday 24.11**",
+            f"- 18:00–20:00 · [Blonia]({URL_B}) · court 1",
+        ]
 
     def test_no_ping_when_only_baselines(self, formatter):
         [payload] = formatter.global_payloads([result([MON_1], new=[MON_1], baseline=True)])
@@ -200,7 +209,7 @@ class TestGlobalPayloads:
         assert payloads[-1]["embeds"][-1]["description"].endswith(f"- [Facility 3]({URL})")
         # nothing from the merged list is lost when splitting
         text = "\n".join(e["description"] for p in payloads for e in p["embeds"] if e.get("title") != NEW_WINDOWS_TITLE)
-        assert text.count("__**Facility") == 4
+        assert text.count("](https://") - 4 == len(many) * 4  # every slot line + 4 booking links
 
     def test_at_most_25_buttons(self, formatter):
         results = [result([], name=f"F{i}", key=f"f{i}") for i in range(30)]

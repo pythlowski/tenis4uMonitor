@@ -1,6 +1,5 @@
 import calendar
 import re
-from collections import defaultdict
 from datetime import date, datetime
 from typing import Callable, Sequence
 
@@ -44,42 +43,40 @@ def natural_key(text: str) -> list:
     return [int(part) if part.isdigit() else part.lower() for part in re.split(r"(\d+)", text)]
 
 
-def by_court(windows: list[FreeWindow]) -> list[tuple[str, list[FreeWindow]]]:
-    """(court label, its windows in time order), courts in natural name order."""
-    groups: dict[str, list[FreeWindow]] = defaultdict(list)
-    for window in windows:
-        groups[window.court_id].append(window)
-    return sorted(
-        ((group[0].court_label, sorted(group)) for group in groups.values()),
-        key=lambda item: natural_key(item[0]),
+# (window, facility label shown after the hours or "" to omit it, facility position for sorting)
+Entry = tuple[FreeWindow, str, int]
+
+
+def facility_label(result: FacilityResult) -> str:
+    """Facility name, as a markdown link to its booking page when there is one."""
+    name = result.facility.name
+    return f"[{name}]({result.booking_url})" if result.booking_url else name
+
+
+def entries(windows: list[FreeWindow], facility: str = "", order: int = 0) -> list[Entry]:
+    return [(window, facility, order) for window in windows]
+
+
+def day_lines(items: list[Entry]) -> list[str]:
+    """
+    **Monday 23.11**
+    - 16:30–19:00 · [Facility](url) · court 1
+
+    Days in date order; within a day by time, then facility, then court.
+    """
+    ordered = sorted(
+        items, key=lambda e: (e[0].start, e[0].end, e[2], natural_key(e[0].court_label))
     )
-
-
-def court_lines(windows: list[FreeWindow]) -> list[str]:
-    """
-    **Court 1**
-    - Monday 23.11 · 16:30–19:00, 20:00–22:30
-    """
     lines: list[str] = []
-    for court, court_windows in by_court(windows):
-        lines.append(f"**{court}**")
-        by_day: dict[date, list[FreeWindow]] = defaultdict(list)
-        for window in court_windows:
-            by_day[window.start.date()].append(window)
-        for day in sorted(by_day):
-            ranges = ", ".join(format_range(w.start, w.end) for w in by_day[day])
-            lines.append(f"- {day_label(day)} · {ranges}")
+    current_day: date | None = None
+    for window, facility, _ in ordered:
+        day = window.start.date()
+        if day != current_day:
+            lines.append(f"**{day_label(day)}**")
+            current_day = day
+        parts = [format_range(window.start, window.end), facility, window.court_label.lower()]
+        lines.append("- " + " · ".join(part for part in parts if part))
     return lines
-
-
-def new_window_lines(windows: list[FreeWindow], facility_name: str | None = None) -> list[str]:
-    """`- **Facility** · Court 1 · Monday 23.11 16:30–19:00`, grouped by court."""
-    prefix = f"**{facility_name}** · " if facility_name else ""
-    return [
-        f"- {prefix}{court} · {day_label(w.start.date())} {format_range(w.start, w.end)}"
-        for court, court_windows in by_court(windows)
-        for w in court_windows
-    ]
 
 
 def join_limited(lines: list[str], limit: int) -> str:
@@ -147,7 +144,7 @@ class MessageFormatter:
         book = [f"[Book here]({result.booking_url})"] if result.booking_url else []
         head = [self.summary(len(result.windows)), ""]
         body_limit = MAX_DESCRIPTION - len("\n".join([*head, *book])) - 2
-        body = join_limited(court_lines(result.windows), body_limit)
+        body = join_limited(day_lines(entries(result.windows)), body_limit)
 
         embed = {
             "title": result.facility.name[:MAX_TITLE],
@@ -173,9 +170,13 @@ class MessageFormatter:
         """All facilities merged into one list, then the booking links; split only to fit Discord limits."""
         total = sum(len(result.windows) for result in results)
         lines = [self.summary(total)]
-        for result in results:
-            lines += ["", f"__**{result.facility.name}**__"]
-            lines += court_lines(result.windows) or ["_No free windows_"]
+        merged = [
+            entry
+            for order, result in enumerate(results)
+            for entry in entries(result.windows, facility_label(result), order)
+        ]
+        if merged:
+            lines += ["", *day_lines(merged)]
 
         links = [f"- [{result.facility.name}]({result.booking_url})" for result in results if result.booking_url]
         if links:
@@ -194,18 +195,18 @@ class MessageFormatter:
     def facility_payload(self, result: FacilityResult) -> dict:
         embeds = [self.facility_embed(result)]
         if result.should_ping:
-            embeds.append(self.new_windows_embed(new_window_lines(result.new_windows)))
+            embeds.append(self.new_windows_embed(day_lines(entries(result.new_windows))))
 
         buttons = [link_button("Book here!", result.booking_url)] if result.booking_url else []
         return self._payload(embeds, buttons, ping=result.should_ping)
 
     def global_payloads(self, results: list[FacilityResult]) -> list[dict]:
-        new_lines = [
-            line
-            for result in results
+        new_lines = day_lines([
+            entry
+            for order, result in enumerate(results)
             if result.should_ping
-            for line in new_window_lines(result.new_windows, facility_name=result.facility.name)
-        ]
+            for entry in entries(result.new_windows, facility_label(result), order)
+        ])
         ping = bool(new_lines)
 
         # The new-windows embed goes first so the ping shows it.
