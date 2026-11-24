@@ -63,9 +63,3 @@ class ProxyBackgroundService:
             return True
         except requests.RequestException:
             return False
-
-
-if __name__ == "__main__":
-    proxyService = ProxyBackgroundService()
-    proxy = proxyService.get_proxy()
-    print(f"Using proxy: {proxy}")

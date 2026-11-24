@@ -12,4 +12,4 @@ class FreeSlot:
         return self.date == other.date and self.courtName == other.courtName
 
     def __lt__(self, other):
-        return self.date < other.date or self.courtName < other.courtName
+        return (self.date, self.courtName) < (other.date, other.courtName)
