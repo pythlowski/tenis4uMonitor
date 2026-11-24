@@ -63,3 +63,11 @@ def test_uses_new_proxy_on_each_retry():
     assert client.get("https://x") == "ok"
     proxies = [call["proxies"]["https"] for call in getter.calls]
     assert proxies == ["http://10.0.0.1:8080", "http://10.0.0.2:8080", "http://10.0.0.3:8080"]
+
+
+def test_without_proxy_service_requests_go_direct_and_retry():
+    getter = RecordingGet([requests.ConnectionError("boom"), FakeResponse(text="ok")])
+    client = HttpClient(user_agent="UA", max_retries=3, request_get=getter)
+
+    assert client.get("https://x") == "ok"
+    assert [call["proxies"] for call in getter.calls] == [None, None]

@@ -10,7 +10,7 @@ class ProxyProvider(Protocol):
 
 
 class HttpClient:
-    """Shared, proxy-backed HTTP GET used by every provider."""
+    """HTTP GET with retries; through a fresh proxy per attempt when a proxy service is given."""
 
     DEFAULT_USER_AGENT = (
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
@@ -19,7 +19,7 @@ class HttpClient:
 
     def __init__(
         self,
-        proxy_service: ProxyProvider,
+        proxy_service: ProxyProvider | None = None,
         user_agent: str = DEFAULT_USER_AGENT,
         timeout: float = 10,
         max_retries: int = 5,
@@ -37,18 +37,20 @@ class HttpClient:
 
         for attempt in range(1, self.max_retries + 1):
             try:
-                return self._get_with_proxy(url, request_headers, params)
+                return self._get_once(url, request_headers, params)
             except requests.RequestException as e:
                 self.logger.error(f"[Attempt {attempt}/{self.max_retries}] GET {url} failed: {e}")
                 if attempt == self.max_retries:
                     raise
-                self.logger.info("Retrying with a new proxy...")
+                self.logger.info("Retrying with a new proxy..." if self.proxy_service else "Retrying...")
 
         raise AssertionError("unreachable")
 
-    def _get_with_proxy(self, url: str, headers: dict[str, str], params: dict | None) -> str:
-        proxy = self.proxy_service.get_proxy()
-        proxies = {"http": f"http://{proxy}", "https": f"http://{proxy}"}
+    def _get_once(self, url: str, headers: dict[str, str], params: dict | None) -> str:
+        proxies = None
+        if self.proxy_service is not None:
+            proxy = self.proxy_service.get_proxy()
+            proxies = {"http": f"http://{proxy}", "https": f"http://{proxy}"}
 
         response = self._get(url, headers=headers, params=params, proxies=proxies, timeout=self.timeout)
         response.raise_for_status()

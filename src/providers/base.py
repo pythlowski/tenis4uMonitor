@@ -25,6 +25,7 @@ class SlotProvider(ABC):
     API_BASE_URL: ClassVar[str]
     WEB_BASE_URL: ClassVar[str]
     HEADERS: ClassVar[dict[str, str]] = {}
+    USES_PROXY: ClassVar[bool] = False  # route requests through the rotating proxy pool
 
     def __init__(self, http: HttpClient):
         self.http = http

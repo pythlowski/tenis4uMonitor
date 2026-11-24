@@ -10,7 +10,7 @@ from models.facility_snapshot import FacilitySnapshot
 from notifications.discord_notifier import DiscordNotifier
 from notifications.message_formatter import MessageFormatter
 from notifications.notification_dispatcher import NotificationDispatcher
-from providers import create_provider
+from providers import create_provider, provider_class
 from providers.base import SlotProvider
 from proxy_background_service import ProxyBackgroundService
 from settings import FacilityConfig, Settings
@@ -32,7 +32,9 @@ class MonitorService:
     ):
         self.logger = Logger(name="MONITOR")
         self.settings = settings
-        self._http = http
+        self._http = http  # when given, used for every provider (tests)
+        self._proxied_http: HttpClient | None = None
+        self._direct_http: HttpClient | None = None
         self.providers: dict[str, SlotProvider] = dict(providers or {})
         self.repository = repository or SnapshotRepository()
         self.comparator = comparator or SnapshotsComparator()
@@ -84,10 +86,19 @@ class MonitorService:
 
     def _provider(self, name: str) -> SlotProvider:
         if name not in self.providers:
-            if self._http is None:
-                self._http = HttpClient(ProxyBackgroundService(max_proxies_ready=self.settings.max_proxies_ready))
-            self.providers[name] = create_provider(name, self._http)
+            self.providers[name] = create_provider(name, self._http_for(provider_class(name).USES_PROXY))
         return self.providers[name]
+
+    def _http_for(self, uses_proxy: bool) -> HttpClient:
+        """Proxy pool only for providers that need it; it is started on first use."""
+        if self._http is not None:
+            return self._http
+        if not uses_proxy:
+            self._direct_http = self._direct_http or HttpClient()
+            return self._direct_http
+        if self._proxied_http is None:
+            self._proxied_http = HttpClient(ProxyBackgroundService(max_proxies_ready=self.settings.max_proxies_ready))
+        return self._proxied_http
 
     def _seconds_until_next_slot(self) -> float:
         """Return the number of seconds to sleep until the next even interval boundary.

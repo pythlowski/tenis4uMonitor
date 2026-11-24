@@ -56,6 +56,7 @@ def parse_occupancy(
 
 class Tenis4uProvider(SlotProvider):
     name = "tenis4u"
+    USES_PROXY = True  # the tenis4u API blocks repeated requests from one IP
     API_BASE_URL = "https://api.tenis4u.pl"
     WEB_BASE_URL = "https://app.tenis4u.pl"
     HEADERS = {"x-tenis-user-agent": "tenis4u-web-frontoffice/3.6.0"}
