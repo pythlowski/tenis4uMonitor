@@ -155,7 +155,7 @@ class TestGlobalPayloads:
         [embed] = payload["embeds"]
         assert embed["title"] == GLOBAL_TITLE
         assert embed["description"].split("\n") == [
-            "Found 2 free windows for: every day",
+            "Found 2 free windows.",
             "",
             "**Monday 23.11**",
             f"- 16:30–19:00 · [Hala XYZ]({URL}) · court 1",
