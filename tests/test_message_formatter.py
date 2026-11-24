@@ -68,22 +68,33 @@ class TestDayLines:
 
     def test_same_time_courts_in_natural_order(self):
         same = [w(23, (18, 0), (19, 0), f"c{n}", f"Court {n}") for n in (10, 2, 1)]
-        assert day_lines(entries(same))[1:] == ["- 18:00–19:00 · court 1", "- 18:00–19:00 · court 2", "- 18:00–19:00 · court 10"]
+        assert day_lines(entries(same))[1:] == ["- 18:00–19:00 · court 1, court 2, court 10"]
 
     def test_facility_with_court_in_parentheses(self):
         assert day_lines(entries([MON_1], "Hala"))[1] == "- 16:30–19:00 · Hala (court 1)"
 
     def test_same_time_sorted_by_facility_order(self):
         items = entries([MON_10], "B", order=1) + entries([MON_10], "A", order=0)
-        assert day_lines(items)[1:] == ["- 18:00–19:00 · A (court 10)", "- 18:00–19:00 · B (court 10)"]
+        assert day_lines(items)[1:] == ["- 18:00–19:00 · A (court 10), B (court 10)"]
+
+    def test_one_line_per_range_with_courts_grouped_by_facility(self):
+        items = entries([w(23, (16, 0), (17, 0), "b2", "B2"), w(23, (16, 0), (17, 0), "b1", "B1")], "Fame", order=1)
+        items += entries([w(23, (16, 0), (17, 0), "x5", "B5"), w(23, (17, 0), (18, 0), "x4", "B4")], "Blonia", order=0)
+        assert day_lines(items) == [
+            "**Monday 23.11**",
+            "- 16:00–17:00 · Blonia (b5), Fame (b1, b2)",
+            "- 17:00–18:00 · Blonia (b4)",
+        ]
+        assert day_lines(entries([w(23, (16, 0), (17, 0), "b2", "B2"), w(23, (16, 0), (17, 0), "b1", "B1")]))[1:] == [
+            "- 16:00–17:00 · b1, b2"
+        ]
 
 
 class TestFacilityEmbed:
     def test_lists_courts_then_booking_link(self, formatter):
         embed = formatter.facility_embed(result([MON_1, MON_2]))
         lines = embed["description"].split("\n")
-        assert lines[0] == "Found 2 free windows."
-        assert lines[2:5] == ["**Monday 23.11**", "- 16:30–19:00 · court 1", "- 17:30–19:00 · court 2"]
+        assert lines[0:3] == ["**Monday 23.11**", "- 16:30–19:00 · court 1", "- 17:30–19:00 · court 2"]
         assert lines[-1].startswith("[Book") and lines[-1].endswith(f"]({URL})")
 
     def test_title_url_and_footer(self, formatter):
@@ -99,11 +110,11 @@ class TestFacilityEmbed:
 
     def test_empty_state(self, formatter):
         embed = formatter.facility_embed(result([]))
-        assert embed["description"].startswith("No free windows")
+        assert embed["description"] == f"No free windows.\n\n[Book here!]({URL})"
         assert "**" not in embed["description"]
 
     def test_long_list_is_truncated_but_keeps_booking_link(self, formatter):
-        many = [w(d, (16, m), (22, 0), f"c{c}", f"Court {c}") for d in range(23, 30) for c in range(40) for m in (0,)]
+        many = [w(d, (h, m), (22, 0), "c1", "Court 1") for d in range(23, 30) for h in range(16, 22) for m in range(60)]
         embed = formatter.facility_embed(result(many))
         assert len(embed["description"]) <= MAX_DESCRIPTION
         assert "more" in embed["description"]
@@ -151,8 +162,6 @@ class TestGlobalPayloads:
         [embed] = payload["embeds"]
         assert embed["title"] == GLOBAL_TITLE
         assert embed["description"].split("\n") == [
-            "Found 2 free windows.",
-            "",
             "**Monday 23.11**",
             f"- 16:30–19:00 · [Hala XYZ]({URL}) (court 1)",
             "**Tuesday 24.11**",
@@ -205,7 +214,8 @@ class TestGlobalPayloads:
         assert payloads[-1]["embeds"][-1]["description"].endswith(f"- [Facility 3]({URL})")
         # nothing from the merged list is lost when splitting
         text = "\n".join(e["description"] for p in payloads for e in p["embeds"] if e.get("title") != NEW_WINDOWS_TITLE)
-        assert text.count("](https://") - 4 == len(many) * 4  # every slot line + 4 booking links
+        ranges = {(x.start, x.end) for x in many}
+        assert text.count("](https://") - 4 == len(ranges) * 4  # every facility on every range line + 4 booking links
 
     def test_at_most_25_buttons(self, formatter):
         results = [result([], name=f"F{i}", key=f"f{i}") for i in range(30)]
