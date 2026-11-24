@@ -1,9 +1,6 @@
-import datetime
-import json
 import os
 from pathlib import Path
 
-from models.free_slot import FreeSlot
 from models.snapshot import Snapshot
 from logger import Logger
 
@@ -45,16 +42,3 @@ class SnapshotRepository:
         return self.FILENAME_PATTERN
         # timestamp: str = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         # return self.FILENAME_PATTERN.replace("*", timestamp)
-
-
-if __name__ == "__main__":
-    repository = SnapshotRepository()
-
-    snapshot = Snapshot(weekdays=["Monday", "Tuesday"], free_slots=[
-        FreeSlot(courtName="badminton 1", date=datetime.datetime(2026, 6, 19, 17, 0)),
-        FreeSlot(courtName="badminton 2", date=datetime.datetime(2026, 6, 19, 17, 30)),
-    ])
-    repository.save(snapshot=snapshot)
-
-    latest = repository.get_latest()
-    print(latest)

@@ -74,9 +74,3 @@ class Settings(BaseSettings):
             dotenv_settings,
             file_secret_settings,
         )
-
-
-if __name__ == "__main__":
-    settings = Settings()
-    print(settings.api.fetch_interval_minutes)
-    print(settings.api.headers)

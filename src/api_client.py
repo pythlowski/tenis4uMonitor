@@ -36,5 +36,6 @@ class APIClient:
             proxies=proxies, 
             timeout=timeout
         )
+        response.raise_for_status()
 
         return response.text
