@@ -248,3 +248,10 @@ class TestProxyRouting:
             tenis4u = service._provider("tenis4u")
             assert tenis4u.http.proxy_service is proxy_service.return_value
             proxy_service.assert_called_once()
+
+    def test_prepare_providers_starts_the_proxy_pool_before_any_run(self, make_settings):
+        with patch("monitor_service.ProxyBackgroundService") as proxy_service:
+            service = MonitorService(make_settings(TWO_FACILITIES))
+            service.prepare_providers()
+            proxy_service.assert_called_once()
+            assert set(service.providers) == {"tenis4u"}
