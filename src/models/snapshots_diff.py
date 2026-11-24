@@ -1,9 +1,10 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
-from models.free_slot import FreeSlot
+from models.free_window import FreeWindow
 
 
-@dataclass
+@dataclass(frozen=True)
 class SnapshotsDiff:
-    are_equal: bool
-    new_slots: list[FreeSlot]
+    changed: bool
+    new_windows: list[FreeWindow] = field(default_factory=list)
+    is_baseline: bool = False
